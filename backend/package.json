@@ -1,0 +1,17 @@
+{
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true
+  },
+  "scripts": {
+    "dev": "tsx --watch src/main.ts"
+  },
+  "dependencies": {
+    "mqtt": "^5.16.0"
+  },
+  "type": "module"
+}
