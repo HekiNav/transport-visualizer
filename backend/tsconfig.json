@@ -1,12 +1,15 @@
 {
+  "include": ["src/**.*"],
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
 
-    "module": "nodenext",
+    "module": "es2022",
     "target": "esnext",
     "lib": ["esnext", "dom"],
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
 
     "sourceMap": true,
     "declaration": true,
@@ -20,5 +23,7 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
   }
 }
