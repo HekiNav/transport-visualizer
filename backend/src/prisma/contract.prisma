@@ -1,7 +1,18 @@
 // use prisma-8
 
+enum RouteType {
+  BUS
+  TRAIN_LONG_DISTANCE
+  TRAIN_COMMUTER
+  TRAM
+  FERRY
+  LIGHT_RAIL
+}
+
 model Message {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id        Int      @id @default(autoincrement())
+  operator  String
+  timestamp DateTime
+  route     String?
+  routeType RouteType
 }

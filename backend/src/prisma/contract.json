@@ -12,16 +12,40 @@
   "domain": {
     "namespaces": {
       "public": {
+        "enum": {
+          "RouteType": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "BUS",
+                "value": "BUS"
+              },
+              {
+                "name": "TRAIN_LONG_DISTANCE",
+                "value": "TRAIN_LONG_DISTANCE"
+              },
+              {
+                "name": "TRAIN_COMMUTER",
+                "value": "TRAIN_COMMUTER"
+              },
+              {
+                "name": "TRAM",
+                "value": "TRAM"
+              },
+              {
+                "name": "FERRY",
+                "value": "FERRY"
+              },
+              {
+                "name": "LIGHT_RAIL",
+                "value": "LIGHT_RAIL"
+              }
+            ]
+          }
+        },
         "models": {
           "Message": {
             "fields": {
-              "email": {
-                "nullable": false,
-                "type": {
-                  "codecId": "pg/text@1",
-                  "kind": "scalar"
-                }
-              },
               "id": {
                 "nullable": false,
                 "type": {
@@ -29,10 +53,37 @@
                   "kind": "scalar"
                 }
               },
-              "name": {
+              "operator": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "route": {
                 "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "routeType": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "RouteType",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "timestamp": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
                   "kind": "scalar"
                 }
               }
@@ -40,14 +91,20 @@
             "relations": {},
             "storage": {
               "fields": {
-                "email": {
-                  "column": "email"
-                },
                 "id": {
                   "column": "id"
                 },
-                "name": {
-                  "column": "name"
+                "operator": {
+                  "column": "operator"
+                },
+                "route": {
+                  "column": "route"
+                },
+                "routeType": {
+                  "column": "routeType"
+                },
+                "timestamp": {
+                  "column": "timestamp"
                 }
               },
               "namespaceId": "public",
@@ -64,12 +121,14 @@
         "entries": {
           "table": {
             "Message": {
+              "checks": [
+                {
+                  "expression": "\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAM', 'FERRY', 'LIGHT_RAIL')",
+                  "name": "Message_routeType_check_ddc92a03",
+                  "prefix": "Message_routeType_check"
+                }
+              ],
               "columns": {
-                "email": {
-                  "codecId": "pg/text@1",
-                  "dataType": "pg/text",
-                  "nullable": false
-                },
                 "id": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
@@ -79,10 +138,31 @@
                   },
                   "nullable": false
                 },
-                "name": {
+                "operator": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "route": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": true
+                },
+                "routeType": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "RouteType",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "timestamp": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
                 }
               },
               "foreignKeys": [],
@@ -92,12 +172,19 @@
                   "id"
                 ]
               },
-              "uniques": [
-                {
-                  "columns": [
-                    "email"
-                  ]
-                }
+              "uniques": []
+            }
+          },
+          "valueSet": {
+            "RouteType": {
+              "kind": "valueSet",
+              "values": [
+                "BUS",
+                "TRAIN_LONG_DISTANCE",
+                "TRAIN_COMMUTER",
+                "TRAM",
+                "FERRY",
+                "LIGHT_RAIL"
               ]
             }
           }
@@ -106,7 +193,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "3b15e630f767ed124683060d799d1e41aeac672af66aa44238cd5562c0090ed4"
+    "storageHash": "8bedf970ba24bb0848d0afbd6a4bee19fac531ad45a5e9b3b380c4e87ce12121"
   },
   "capabilities": {
     "postgres": {

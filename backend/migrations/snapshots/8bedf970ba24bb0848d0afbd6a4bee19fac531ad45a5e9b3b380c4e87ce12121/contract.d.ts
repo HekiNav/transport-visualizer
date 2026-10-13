@@ -18,7 +18,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'3b15e630f767ed124683060d799d1e41aeac672af66aa44238cd5562c0090ed4'>;
+  StorageHashBase<'8bedf970ba24bb0848d0afbd6a4bee19fac531ad45a5e9b3b380c4e87ce12121'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -234,45 +234,59 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 export type FieldOutputTypes = {
   readonly public: {
     readonly Message: {
-      readonly email: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'] | null;
+      readonly operator: CodecTypes['pg/text@1']['output'];
+      readonly route: CodecTypes['pg/text@1']['output'] | null;
+      readonly routeType:
+        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
   };
 };
 export type FieldInputTypes = {
   readonly public: {
     readonly Message: {
-      readonly email: CodecTypes['pg/text@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'] | null;
+      readonly operator: CodecTypes['pg/text@1']['input'];
+      readonly route: CodecTypes['pg/text@1']['input'] | null;
+      readonly routeType:
+        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
   };
 };
 export type StorageColumnTypes = {
   readonly public: {
     readonly Message: {
-      readonly email: CodecTypes['pg/text@1']['output'];
       readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly name: CodecTypes['pg/text@1']['output'] | null;
+      readonly operator: CodecTypes['pg/text@1']['output'];
+      readonly route: CodecTypes['pg/text@1']['output'] | null;
+      readonly routeType:
+        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
     };
   };
 };
 export type StorageColumnInputTypes = {
   readonly public: {
     readonly Message: {
-      readonly email: CodecTypes['pg/text@1']['input'];
       readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly name: CodecTypes['pg/text@1']['input'] | null;
+      readonly operator: CodecTypes['pg/text@1']['input'];
+      readonly route: CodecTypes['pg/text@1']['input'] | null;
+      readonly routeType:
+        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
     };
   };
 };
 
 export namespace Models {
   export type public_Message = {
-    email: CodecTypes['pg/text@1']['output'];
     id: CodecTypes['pg/int4@1']['output'];
-    name: CodecTypes['pg/text@1']['output'] | null;
+    operator: CodecTypes['pg/text@1']['output'];
+    route: CodecTypes['pg/text@1']['output'] | null;
+    routeType: 'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
+    timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
     readonly [RelationKeys]?: never;
   };
 }
@@ -303,12 +317,6 @@ type ContractBase = Omit<
           readonly table: {
             readonly Message: {
               columns: {
-                readonly email: {
-                  readonly dataType: 'pg/text';
-                  readonly codecId: 'pg/text@1';
-                  readonly nullable: false;
-                  readonly many: false;
-                };
                 readonly id: {
                   readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
@@ -319,17 +327,48 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
-                readonly name: {
+                readonly operator: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly route: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: true;
                   readonly many: false;
                 };
+                readonly routeType: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly timestamp: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
               };
               primaryKey: { readonly columns: readonly ['id'] };
-              uniques: readonly [{ readonly columns: readonly ['email'] }];
+              uniques: readonly [];
               indexes: readonly [];
               foreignKeys: readonly [];
+            };
+          };
+          readonly valueSet: {
+            readonly RouteType: {
+              readonly kind: 'valueSet';
+              readonly values: readonly [
+                'BUS',
+                'TRAIN_LONG_DISTANCE',
+                'TRAIN_COMMUTER',
+                'TRAM',
+                'FERRY',
+                'LIGHT_RAIL',
+              ];
             };
           };
         };
@@ -350,17 +389,28 @@ type ContractBase = Omit<
         readonly models: {
           readonly Message: {
             readonly fields: {
-              readonly email: {
-                readonly nullable: false;
-                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
-              };
               readonly id: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly name: {
+              readonly operator: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly route: {
                 readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly routeType: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly timestamp: {
+                readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
               };
             };
             readonly relations: Record<string, never>;
@@ -368,12 +418,37 @@ type ContractBase = Omit<
               readonly table: 'Message';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly email: { readonly column: 'email' };
                 readonly id: { readonly column: 'id' };
-                readonly name: { readonly column: 'name' };
+                readonly operator: { readonly column: 'operator' };
+                readonly route: { readonly column: 'route' };
+                readonly routeType: { readonly column: 'routeType' };
+                readonly timestamp: { readonly column: 'timestamp' };
               };
             };
           };
+        };
+        readonly enum: {
+          readonly RouteType: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'BUS'; readonly value: 'BUS' },
+              { readonly name: 'TRAIN_LONG_DISTANCE'; readonly value: 'TRAIN_LONG_DISTANCE' },
+              { readonly name: 'TRAIN_COMMUTER'; readonly value: 'TRAIN_COMMUTER' },
+              { readonly name: 'TRAM'; readonly value: 'TRAM' },
+              { readonly name: 'FERRY'; readonly value: 'FERRY' },
+              { readonly name: 'LIGHT_RAIL'; readonly value: 'LIGHT_RAIL' },
+            ];
+          };
+        };
+        readonly enumMemberTypes?: {
+          readonly RouteType: readonly [
+            { readonly name: 'BUS'; readonly value: 'BUS' },
+            { readonly name: 'TRAIN_LONG_DISTANCE'; readonly value: 'TRAIN_LONG_DISTANCE' },
+            { readonly name: 'TRAIN_COMMUTER'; readonly value: 'TRAIN_COMMUTER' },
+            { readonly name: 'TRAM'; readonly value: 'TRAM' },
+            { readonly name: 'FERRY'; readonly value: 'FERRY' },
+            { readonly name: 'LIGHT_RAIL'; readonly value: 'LIGHT_RAIL' },
+          ];
         };
       };
     };
