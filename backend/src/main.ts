@@ -3,8 +3,8 @@ import { db, type Tx } from "./prisma/db"
 import { or, type CollectionRowOf } from "@prisma/orm-postgres/orm-client";
 import express from "express"
 import rateLimit from "express-rate-limit";
-import z from "zod";
-import type { Expression } from "@prisma/orm-postgres/builder";
+import z, { success } from "zod";
+import cors from "cors"
 
 // Types
 type Message = CollectionRowOf<typeof db.orm.public.Message>
@@ -131,10 +131,11 @@ async function start() {
   const app = express()
 
   const limiter = rateLimit({
-    limit: 100,
-    windowMs: 300_000,
-    message: { code: 429, message: `Requests are rate limited to ${process.env.RATE_LIMIT_AMOUNT} in a ${process.env.RATE_LIMIT_MINUTES} minute period` }
+    limit: Number(process.env.RATE_LIMIT_AMOUNT),
+    windowMs: Number(process.env.RATE_LIMIT_MINUTES) * 60_000,
+    message: { code: 429, message: `Requests are rate limited to ${process.env.RATE_LIMIT_AMOUNT} in a ${process.env.RATE_LIMIT_MINUTES} minute period`, success: false }
   })
+  app.use(cors())
   app.use(limiter)
 
   app.listen(process.env.API_PORT, () => {
@@ -178,7 +179,8 @@ async function start() {
     } catch (error) {
       res.status(500).json({
         code: 500,
-        message: `Failed to parse parameter: ${error}`
+        message: `Failed to parse parameter: ${error}`,
+        success: false
       })
       return
     }
@@ -190,7 +192,8 @@ async function start() {
 
     const trips = await query.all()
     res.json({
-      data: trips
+      data: trips,
+      success: true
     })
   })
 
@@ -202,7 +205,7 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
 
     const tripId = `${json.departureDate}/${json.trainNumber}`
 
-    const msgPos = { lat: json.location.coordinates[0], lng: json.location.coordinates[1] }
+    const msgPos = { lat: json.location.coordinates[1], lng: json.location.coordinates[0] }
 
     if (!seenTrips.has(tripId)) {
       let trip: Trip | null = null
@@ -227,8 +230,8 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
     // This should never happen
     if (!seen) return
 
-    // skip event if its been less than 30 seconds or the vehicle has moved less than 10m
-    if (Temporal.Duration.compare(now.since(seen.lastTime), Temporal.Duration.from({ seconds: 30 })) == -1) {
+    // skip event if its been less than 15 seconds or the vehicle has moved less than 10m
+    if (Temporal.Duration.compare(now.since(seen.lastTime), Temporal.Duration.from({ seconds: 15 })) == -1) {
       //console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
     } else if (haversineDistance(seen.lastPos, msgPos) < 0.01) {
       //console.log(`Skipping ${seen.trip.route} due to distance`)

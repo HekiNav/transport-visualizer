@@ -1,5 +1,5 @@
 {
-  "name": "transport-visulizer-frontend",
+  "name": "transport-visualizer-frontend",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "geojson": "^0.5.0",
     "maplibre-gl": "^6.14.0",
     "tailwindcss": "^4.3.3"
   }
