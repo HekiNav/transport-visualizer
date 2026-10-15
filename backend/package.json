@@ -1,8 +1,8 @@
 {
   "devDependencies": {
     "@prisma/cli-engine": "^0.7.0",
+    "@types/express": "^5.0.6",
     "@types/node": "^26.6.5",
-    "prisma": "^8.0.0-rc.22",
     "tsx": "^4.23.15",
     "typescript": "^7.0.2"
   },
@@ -13,13 +13,19 @@
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "contract:emit": "prisma contract emit",
-    "build": "esbuild src/main.ts --bundle --platform=node --outfile=dist/index.cjs --format=cjs"
+    "build": "esbuild src/main.ts --bundle --platform=node --outfile=dist/index.cjs --format=cjs",
+    "pm2:start": "pm2 start ecosystem.config.cjs",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart ecosystem.config.cjs"
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.17",
     "dotenv": "^18.0.7",
     "esbuild": "^0.28.2",
-    "mqtt": "^5.16.0"
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "mqtt": "^5.16.0",
+    "zod": "^4.6.7"
   },
   "type": "module"
 }

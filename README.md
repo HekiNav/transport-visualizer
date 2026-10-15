@@ -1,1 +1,81 @@
 # Transport visualizer
+
+The project consists of a backend and frontend in the same repo.
+
+# Backend
+
+The backend is a node.js typescript server which takes in data from [Digitraffic MQTT](https://www.digitraffic.fi/rautatieliikenne/#websocket-mqtt) and stores it in a postgres database. The data can be accessed via a public REST API using Express.js
+
+## Usage
+
+1. **Configure .env file**: Follow the instructions in .env.template
+2. **Install dependencies**: `npm i`. 
+3. **Start dev server**: `npm run dev`. 
+4. **Start production server**: `npm run build & npm run pm2:start`. 
+5. **Stop production server**: `npm run pm2:stop`. 
+
+
+## API Definition
+
+The API always returns JSON. The JSON can include an error or data
+
+### Error format
+
+```json
+{
+    "code": 500,  // Matches HTTP status code
+    "message": "" // Describes the error
+}
+```
+
+### /api/v2/trips
+
+Returns a list of trips, optionally including location messages.
+
+### Query parameters
+
+**messages**: If the parameter is defined (no value required), messages are included for each trip
+
+**dataSource**: Filters the data source of trips. Valid values: DIGITRAFFIC
+
+**departureDate**: Filters the departure date of trips. Valid values: RFC3339 date format. Example: `2026-10-15`
+
+**endPoint**: Filters endPointId attribute of trips. Comma-separated values are treated as an OR statement. Example: `HKI,ROI,KV,TPET`
+
+**startPoint**: Filters startPointId attribute of trips. The same comma function as endPoint applies.
+
+**terminus**: Filters trips by either the start point or the end point, so a value of `HKI` matches trips starting and ending at Helsinki station. The same comma function as endPoint applies.
+
+### Data format
+
+```json
+{
+    "data": [
+        {
+            "dataSource": "DIGITRAFFIC", // "DIGITRAFFIC"
+            "departureDate": "2026-10-15",
+            "endPointId": "HKI",
+            "endPointName": "Helsinki asema",
+            "operatorId": "vr",
+            "operatorName": "VR-Yhtymä Oyj",
+            "route": "IC 62", // passenger facing route descriptor
+            "routeType": "TRAIN_LONG_DISTANCE", // "BUS", "TRAIN_LONG_DISTANCE", "TRAIN_COMMUTER", "TRAIN_FREIGHT", "TRAIN_SHUNT", "TRAIN_OTHER", "TRAIN_REGIONAL", "TRAIN_TRANSFER", "TRAIN_SLEEPER", "TRAM", "FERRY", "LIGHT_RAIL"
+            "startPointId": "KAJ",
+            "startPointName": "Kajaani",
+            "tripId": "2026-10-15/62",
+            // messages property is only available when requested with the &messages query parameter
+            "messages": [
+                {
+                    "lat": 27.74642,
+                    "lng": 64.220061,
+                    "messageId": 19420, // running count integer
+                    "timestamp": "2026-10-14T22:41:55Z",
+                    "tripId": "2026-10-15/62"
+                },
+                // ...
+            ],
+        }
+        // ...
+    ]
+}
+```

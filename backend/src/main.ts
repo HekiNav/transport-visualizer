@@ -1,7 +1,10 @@
 import mqtt from "mqtt"
 import { db, type Tx } from "./prisma/db"
-import type { CollectionRowOf } from "@prisma/orm-postgres/orm-client";
-import type { TransactionContext } from "@prisma/orm-postgres/family-runtime";
+import { or, type CollectionRowOf } from "@prisma/orm-postgres/orm-client";
+import express from "express"
+import rateLimit from "express-rate-limit";
+import z from "zod";
+import type { Expression } from "@prisma/orm-postgres/builder";
 
 // Types
 type Message = CollectionRowOf<typeof db.orm.public.Message>
@@ -112,11 +115,11 @@ async function start() {
 
   client.on("message", (topic, message) => {
 
-    if (Date.now() - lastBatch >= 100) {
+    if (Date.now() - lastBatch >= 500) {
       const currentBatch = [...nextBatch]
       lastBatch = Date.now()
       nextBatch.length = 0
-      console.log(`Processing batch: ${currentBatch.length} messages`)
+      //console.log(`Processing batch: ${currentBatch.length} messages`)
       db.transaction(tx =>
         Promise.all(currentBatch.map((msg, i) => parseMessage({ data: msg, source: "DIGITRAFFIC" }, allDigitrafficTrainDetails, tx)))
       )
@@ -124,6 +127,72 @@ async function start() {
 
     nextBatch.push(message)
   });
+
+  const app = express()
+
+  const limiter = rateLimit({
+    limit: 100,
+    windowMs: 300_000,
+    message: { code: 429, message: `Requests are rate limited to ${process.env.RATE_LIMIT_AMOUNT} in a ${process.env.RATE_LIMIT_MINUTES} minute period` }
+  })
+  app.use(limiter)
+
+  app.listen(process.env.API_PORT, () => {
+    console.log("Api ready")
+  })
+
+  app.get("/api/v1/trips", async (req, res) => {
+    let query = db.orm.public.Trip
+
+    try {
+      if (req.query.departureDate) {
+        query = query.where(p => p.departureDate.eq(Temporal.PlainDate.from(req.query.departureDate!.toString())))
+      }
+      if (req.query.startPoint) {
+        query = query.where(p => p.startPointId.in(req.query.startPoint?.toString().split(",") || []))
+      }
+      if (req.query.endPoint) {
+        query = query.where(p => p.endPointId.in(req.query.endPoint?.toString().split(",") || []))
+      }
+      if (req.query.terminus) {
+        query = query.where(p => or(p.startPointId.in(req.query.terminus?.toString().split(",") || []), p.endPointId.in(req.query.terminus?.toString().split(",") || [])))
+      }
+      if (req.query.dataSource) {
+        const typeEnum = z.enum(["DIGITRAFFIC"])
+        const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource)
+        if (!success) {
+          throw `Invalid routeType: ${z.treeifyError(error).errors}`
+        } else {
+          query = query.where(p => p.dataSource.eq(data))
+        }
+      }
+      if (req.query.routeType) {
+        const typeEnum = z.enum(["BUS", "TRAIN_LONG_DISTANCE", "TRAIN_COMMUTER", "TRAIN_FREIGHT", "TRAIN_SHUNT", "TRAIN_OTHER", "TRAIN_REGIONAL", "TRAIN_TRANSFER", "TRAIN_SLEEPER", "TRAM", "FERRY", "LIGHT_RAIL"])
+        const { success, data, error } = await typeEnum.safeParseAsync(req.query.routeType)
+        if (!success) {
+          throw `Invalid routeType: ${z.treeifyError(error).errors}`
+        } else {
+          query = query.where(p => p.routeType.eq(data))
+        }
+      }
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: `Failed to parse parameter: ${error}`
+      })
+      return
+    }
+
+    if (req.query.messages !== undefined) {
+      console.log("djjdj")
+      query = query.include("messages")
+    }
+
+    const trips = await query.all()
+    res.json({
+      data: trips
+    })
+  })
 
 }
 
@@ -160,11 +229,11 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
 
     // skip event if its been less than 30 seconds or the vehicle has moved less than 10m
     if (Temporal.Duration.compare(now.since(seen.lastTime), Temporal.Duration.from({ seconds: 30 })) == -1) {
-      console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
+      //console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
     } else if (haversineDistance(seen.lastPos, msgPos) < 0.01) {
-      console.log(`Skipping ${seen.trip.route} due to distance`)
+      //console.log(`Skipping ${seen.trip.route} due to distance`)
     } else {
-      console.log(`Logging ${seen.trip.route}`)
+      //console.log(`Logging ${seen.trip.route}`)
 
       await tx.orm.public.Message.create({
         ...msgPos,
