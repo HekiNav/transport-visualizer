@@ -1,0 +1,178 @@
+[
+  {
+    "id": "schema.public",
+    "label": "Create schema \"public\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres"
+    },
+    "precheck": [],
+    "execute": [
+      {
+        "description": "Create schema \"public\"",
+        "sql": "CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "params": []
+      }
+    ],
+    "postcheck": []
+  },
+  {
+    "id": "table.Message",
+    "label": "Create table \"Message\"",
+    "summary": "Creates table \"Message\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Message"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Message\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Message\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Message\"",
+        "sql": "CREATE TABLE \"public\".\"Message\" (\n  \"lat\" float8 NOT NULL,\n  \"lng\" float8 NOT NULL,\n  \"messageId\" SERIAL NOT NULL,\n  \"timestamp\" timestamptz NOT NULL,\n  \"tripId\" text NOT NULL,\n  PRIMARY KEY (\"messageId\")\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Message\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Message\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table.Trip",
+    "label": "Create table \"Trip\"",
+    "summary": "Creates table \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "table",
+        "name": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure table \"Trip\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create table \"Trip\"",
+        "sql": "CREATE TABLE \"public\".\"Trip\" (\n  \"operatorId\" text NOT NULL,\n  \"operatorName\" text NOT NULL,\n  \"route\" text,\n  \"routeType\" text NOT NULL,\n  \"tripId\" text NOT NULL,\n  PRIMARY KEY (\"tripId\"),\n  CONSTRAINT \"Trip_routeType_check_ddc92a03\" CHECK (\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAM', 'FERRY', 'LIGHT_RAIL'))\n)",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify table \"Trip\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Trip\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Message.Message_tripId_idx_75da6d97",
+    "label": "Create index \"Message_tripId_idx_75da6d97\" on \"Message\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Message_tripId_idx_75da6d97",
+        "table": "Message"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Message_tripId_idx_75da6d97\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Message_tripId_idx_75da6d97\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Message_tripId_idx_75da6d97\"",
+        "sql": "CREATE INDEX \"Message_tripId_idx_75da6d97\" ON \"public\".\"Message\" (\"tripId\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Message_tripId_idx_75da6d97\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Message_tripId_idx_75da6d97\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "foreignKey.Message.Message_tripId_fkey",
+    "label": "Add foreign key \"Message_tripId_fkey\" on \"Message\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "foreignKey",
+        "name": "Message_tripId_fkey",
+        "table": "Message"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure FK \"Message_tripId_fkey\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Message_tripId_fkey",
+          "public",
+          "\"public\".\"Message\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add FK \"Message_tripId_fkey\"",
+        "sql": "ALTER TABLE \"public\".\"Message\"\nADD CONSTRAINT \"Message_tripId_fkey\"\nFOREIGN KEY (\"tripId\")\nREFERENCES \"public\".\"Trip\" (\"tripId\")"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify FK \"Message_tripId_fkey\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Message_tripId_fkey",
+          "public",
+          "\"public\".\"Message\""
+        ]
+      }
+    ]
+  }
+]

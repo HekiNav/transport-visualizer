@@ -2,13 +2,14 @@
   "include": ["src/**.*"],
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist",
+
+
 
     "module": "es2022",
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "types": [
-      "node"
+      "node",
     ],
 
     "sourceMap": true,

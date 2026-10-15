@@ -1,18 +1,43 @@
 // use prisma-8
-
 enum RouteType {
   BUS
   TRAIN_LONG_DISTANCE
   TRAIN_COMMUTER
+  TRAIN_FREIGHT
+  TRAIN_SHUNT
+  TRAIN_OTHER
+  TRAIN_REGIONAL
+  TRAIN_TRANSFER
+  TRAIN_SLEEPER
   TRAM
   FERRY
   LIGHT_RAIL
 }
 
+enum DataSource {
+  DIGITRAFFIC
+}
+
 model Message {
-  id        Int      @id @default(autoincrement())
-  operator  String
+  messageId Int      @id @default(autoincrement())
+  tripId    String
+  trip      Trip     @relation(fields: [tripId], references: [tripId])
   timestamp DateTime
-  route     String?
-  routeType RouteType
+  lat       Float
+  lng       Float
+}
+
+model Trip {
+  tripId         String     @id
+  route          String?
+  routeType      RouteType
+  operatorId     String
+  operatorName   String?
+  messages       Message[]
+  endPointId     String
+  startPointId   String
+  endPointName   String?
+  startPointName String?
+  departureDate  Date
+  dataSource     DataSource
 }

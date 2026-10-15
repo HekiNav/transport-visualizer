@@ -7,12 +7,25 @@
     "Message": {
       "model": "Message",
       "namespace": "public"
+    },
+    "Trip": {
+      "model": "Trip",
+      "namespace": "public"
     }
   },
   "domain": {
     "namespaces": {
       "public": {
         "enum": {
+          "DataSource": {
+            "codecId": "pg/text@1",
+            "members": [
+              {
+                "name": "DIGITRAFFIC",
+                "value": "DIGITRAFFIC"
+              }
+            ]
+          },
           "RouteType": {
             "codecId": "pg/text@1",
             "members": [
@@ -27,6 +40,30 @@
               {
                 "name": "TRAIN_COMMUTER",
                 "value": "TRAIN_COMMUTER"
+              },
+              {
+                "name": "TRAIN_FREIGHT",
+                "value": "TRAIN_FREIGHT"
+              },
+              {
+                "name": "TRAIN_SHUNT",
+                "value": "TRAIN_SHUNT"
+              },
+              {
+                "name": "TRAIN_OTHER",
+                "value": "TRAIN_OTHER"
+              },
+              {
+                "name": "TRAIN_REGIONAL",
+                "value": "TRAIN_REGIONAL"
+              },
+              {
+                "name": "TRAIN_TRANSFER",
+                "value": "TRAIN_TRANSFER"
+              },
+              {
+                "name": "TRAIN_SLEEPER",
+                "value": "TRAIN_SLEEPER"
               },
               {
                 "name": "TRAM",
@@ -46,15 +83,127 @@
         "models": {
           "Message": {
             "fields": {
-              "id": {
+              "lat": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "lng": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/float8@1",
+                  "kind": "scalar"
+                }
+              },
+              "messageId": {
                 "nullable": false,
                 "type": {
                   "codecId": "pg/int4@1",
                   "kind": "scalar"
                 }
               },
-              "operator": {
+              "timestamp": {
                 "nullable": false,
+                "type": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "tripId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              }
+            },
+            "relations": {
+              "trip": {
+                "cardinality": "N:1",
+                "nullable": false,
+                "on": {
+                  "localFields": [
+                    "tripId"
+                  ],
+                  "targetFields": [
+                    "tripId"
+                  ]
+                },
+                "to": {
+                  "model": "Trip",
+                  "namespace": "public"
+                }
+              }
+            },
+            "storage": {
+              "fields": {
+                "lat": {
+                  "column": "lat"
+                },
+                "lng": {
+                  "column": "lng"
+                },
+                "messageId": {
+                  "column": "messageId"
+                },
+                "timestamp": {
+                  "column": "timestamp"
+                },
+                "tripId": {
+                  "column": "tripId"
+                }
+              },
+              "namespaceId": "public",
+              "table": "Message"
+            }
+          },
+          "Trip": {
+            "fields": {
+              "dataSource": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                },
+                "valueSet": {
+                  "entityKind": "enum",
+                  "entityName": "DataSource",
+                  "namespaceId": "public",
+                  "plane": "domain"
+                }
+              },
+              "departureDate": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/date-temporal@1",
+                  "kind": "scalar"
+                }
+              },
+              "endPointId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "endPointName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "operatorId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "operatorName": {
+                "nullable": true,
                 "type": {
                   "codecId": "pg/text@1",
                   "kind": "scalar"
@@ -80,22 +229,64 @@
                   "plane": "domain"
                 }
               },
-              "timestamp": {
+              "startPointId": {
                 "nullable": false,
                 "type": {
-                  "codecId": "pg/timestamptz-temporal@1",
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "startPointName": {
+                "nullable": true,
+                "type": {
+                  "codecId": "pg/text@1",
+                  "kind": "scalar"
+                }
+              },
+              "tripId": {
+                "nullable": false,
+                "type": {
+                  "codecId": "pg/text@1",
                   "kind": "scalar"
                 }
               }
             },
-            "relations": {},
+            "relations": {
+              "messages": {
+                "cardinality": "1:N",
+                "on": {
+                  "localFields": [
+                    "tripId"
+                  ],
+                  "targetFields": [
+                    "tripId"
+                  ]
+                },
+                "to": {
+                  "model": "Message",
+                  "namespace": "public"
+                }
+              }
+            },
             "storage": {
               "fields": {
-                "id": {
-                  "column": "id"
+                "dataSource": {
+                  "column": "dataSource"
                 },
-                "operator": {
-                  "column": "operator"
+                "departureDate": {
+                  "column": "departureDate"
+                },
+                "endPointId": {
+                  "column": "endPointId"
+                },
+                "endPointName": {
+                  "column": "endPointName"
+                },
+                "operatorId": {
+                  "column": "operatorId"
+                },
+                "operatorName": {
+                  "column": "operatorName"
                 },
                 "route": {
                   "column": "route"
@@ -103,12 +294,18 @@
                 "routeType": {
                   "column": "routeType"
                 },
-                "timestamp": {
-                  "column": "timestamp"
+                "startPointId": {
+                  "column": "startPointId"
+                },
+                "startPointName": {
+                  "column": "startPointName"
+                },
+                "tripId": {
+                  "column": "tripId"
                 }
               },
               "namespaceId": "public",
-              "table": "Message"
+              "table": "Trip"
             }
           }
         }
@@ -121,15 +318,18 @@
         "entries": {
           "table": {
             "Message": {
-              "checks": [
-                {
-                  "expression": "\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAM', 'FERRY', 'LIGHT_RAIL')",
-                  "name": "Message_routeType_check_ddc92a03",
-                  "prefix": "Message_routeType_check"
-                }
-              ],
               "columns": {
-                "id": {
+                "lat": {
+                  "codecId": "pg/float8@1",
+                  "dataType": "pg/float8",
+                  "nullable": false
+                },
+                "lng": {
+                  "codecId": "pg/float8@1",
+                  "dataType": "pg/float8",
+                  "nullable": false
+                },
+                "messageId": {
                   "codecId": "pg/int4@1",
                   "dataType": "pg/int4",
                   "default": {
@@ -138,10 +338,104 @@
                   },
                   "nullable": false
                 },
-                "operator": {
+                "timestamp": {
+                  "codecId": "pg/timestamptz-temporal@1",
+                  "dataType": "pg/timestamptz",
+                  "nullable": false
+                },
+                "tripId": {
                   "codecId": "pg/text@1",
                   "dataType": "pg/text",
                   "nullable": false
+                }
+              },
+              "foreignKeys": [
+                {
+                  "index": {
+                    "name": "Message_tripId_idx_75da6d97"
+                  },
+                  "source": {
+                    "columns": [
+                      "tripId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Message"
+                  },
+                  "target": {
+                    "columns": [
+                      "tripId"
+                    ],
+                    "namespaceId": "public",
+                    "tableName": "Trip"
+                  }
+                }
+              ],
+              "indexes": [
+                {
+                  "columns": [
+                    "tripId"
+                  ],
+                  "name": "Message_tripId_idx_75da6d97",
+                  "prefix": "Message_tripId_idx",
+                  "unique": false
+                }
+              ],
+              "primaryKey": {
+                "columns": [
+                  "messageId"
+                ]
+              },
+              "uniques": []
+            },
+            "Trip": {
+              "checks": [
+                {
+                  "expression": "\"dataSource\" IN ('DIGITRAFFIC')",
+                  "name": "Trip_dataSource_check_3ec7359e",
+                  "prefix": "Trip_dataSource_check"
+                },
+                {
+                  "expression": "\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAIN_FREIGHT', 'TRAIN_SHUNT', 'TRAIN_OTHER', 'TRAIN_REGIONAL', 'TRAIN_TRANSFER', 'TRAIN_SLEEPER', 'TRAM', 'FERRY', 'LIGHT_RAIL')",
+                  "name": "Trip_routeType_check_b6410f7b",
+                  "prefix": "Trip_routeType_check"
+                }
+              ],
+              "columns": {
+                "dataSource": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false,
+                  "valueSet": {
+                    "entityKind": "valueSet",
+                    "entityName": "DataSource",
+                    "namespaceId": "public",
+                    "plane": "storage"
+                  }
+                },
+                "departureDate": {
+                  "codecId": "pg/date-temporal@1",
+                  "dataType": "pg/date",
+                  "nullable": false
+                },
+                "endPointId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "endPointName": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "operatorId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "operatorName": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
                 },
                 "route": {
                   "codecId": "pg/text@1",
@@ -159,9 +453,19 @@
                     "plane": "storage"
                   }
                 },
-                "timestamp": {
-                  "codecId": "pg/timestamptz-temporal@1",
-                  "dataType": "pg/timestamptz",
+                "startPointId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": false
+                },
+                "startPointName": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
+                  "nullable": true
+                },
+                "tripId": {
+                  "codecId": "pg/text@1",
+                  "dataType": "pg/text",
                   "nullable": false
                 }
               },
@@ -169,19 +473,31 @@
               "indexes": [],
               "primaryKey": {
                 "columns": [
-                  "id"
+                  "tripId"
                 ]
               },
               "uniques": []
             }
           },
           "valueSet": {
+            "DataSource": {
+              "kind": "valueSet",
+              "values": [
+                "DIGITRAFFIC"
+              ]
+            },
             "RouteType": {
               "kind": "valueSet",
               "values": [
                 "BUS",
                 "TRAIN_LONG_DISTANCE",
                 "TRAIN_COMMUTER",
+                "TRAIN_FREIGHT",
+                "TRAIN_SHUNT",
+                "TRAIN_OTHER",
+                "TRAIN_REGIONAL",
+                "TRAIN_TRANSFER",
+                "TRAIN_SLEEPER",
                 "TRAM",
                 "FERRY",
                 "LIGHT_RAIL"
@@ -193,7 +509,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "8bedf970ba24bb0848d0afbd6a4bee19fac531ad45a5e9b3b380c4e87ce12121"
+    "storageHash": "5e3c98f1b43b89bb1b4003e0ff554d17ffa79a66a028f642357bb85769c2e269"
   },
   "capabilities": {
     "postgres": {

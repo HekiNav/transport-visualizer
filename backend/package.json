@@ -13,11 +13,12 @@
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "contract:emit": "prisma contract emit",
-    "postinstall": "prisma skills sync || exit 0"
+    "build": "esbuild src/main.ts --bundle --platform=node --outfile=dist/index.cjs --format=cjs"
   },
   "dependencies": {
     "@prisma/orm-postgres": "^8.0.0-rc.17",
     "dotenv": "^18.0.7",
+    "esbuild": "^0.28.2",
     "mqtt": "^5.16.0"
   },
   "type": "module"

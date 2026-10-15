@@ -18,7 +18,7 @@ import type {
 } from '@prisma/orm-postgres/contract/types';
 
 export type StorageHash =
-  StorageHashBase<'8bedf970ba24bb0848d0afbd6a4bee19fac531ad45a5e9b3b380c4e87ce12121'>;
+  StorageHashBase<'5e3c98f1b43b89bb1b4003e0ff554d17ffa79a66a028f642357bb85769c2e269'>;
 export type ExecutionHash = ExecutionHashBase<string>;
 export type ProfileHash =
   ProfileHashBase<'3916f444a8a17ad749191acf9e08dad97d1a327b88c2f1d45d12f240296aa8b2'>;
@@ -234,66 +234,191 @@ type DefaultLiteralValue<CodecId extends string, Encoded> = CodecId extends keyo
 export type FieldOutputTypes = {
   readonly public: {
     readonly Message: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly operator: CodecTypes['pg/text@1']['output'];
+      readonly lat: CodecTypes['pg/float8@1']['output'];
+      readonly lng: CodecTypes['pg/float8@1']['output'];
+      readonly messageId: CodecTypes['pg/int4@1']['output'];
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly tripId: CodecTypes['pg/text@1']['output'];
+    };
+    readonly Trip: {
+      readonly dataSource: 'DIGITRAFFIC';
+      readonly departureDate: CodecTypes['pg/date-temporal@1']['output'];
+      readonly endPointId: CodecTypes['pg/text@1']['output'];
+      readonly endPointName: CodecTypes['pg/text@1']['output'] | null;
+      readonly operatorId: CodecTypes['pg/text@1']['output'];
+      readonly operatorName: CodecTypes['pg/text@1']['output'] | null;
       readonly route: CodecTypes['pg/text@1']['output'] | null;
       readonly routeType:
-        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
-      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
+        | 'BUS'
+        | 'TRAIN_LONG_DISTANCE'
+        | 'TRAIN_COMMUTER'
+        | 'TRAIN_FREIGHT'
+        | 'TRAIN_SHUNT'
+        | 'TRAIN_OTHER'
+        | 'TRAIN_REGIONAL'
+        | 'TRAIN_TRANSFER'
+        | 'TRAIN_SLEEPER'
+        | 'TRAM'
+        | 'FERRY'
+        | 'LIGHT_RAIL';
+      readonly startPointId: CodecTypes['pg/text@1']['output'];
+      readonly startPointName: CodecTypes['pg/text@1']['output'] | null;
+      readonly tripId: CodecTypes['pg/text@1']['output'];
     };
   };
 };
 export type FieldInputTypes = {
   readonly public: {
     readonly Message: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly operator: CodecTypes['pg/text@1']['input'];
+      readonly lat: CodecTypes['pg/float8@1']['input'];
+      readonly lng: CodecTypes['pg/float8@1']['input'];
+      readonly messageId: CodecTypes['pg/int4@1']['input'];
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly tripId: CodecTypes['pg/text@1']['input'];
+    };
+    readonly Trip: {
+      readonly dataSource: 'DIGITRAFFIC';
+      readonly departureDate: CodecTypes['pg/date-temporal@1']['input'];
+      readonly endPointId: CodecTypes['pg/text@1']['input'];
+      readonly endPointName: CodecTypes['pg/text@1']['input'] | null;
+      readonly operatorId: CodecTypes['pg/text@1']['input'];
+      readonly operatorName: CodecTypes['pg/text@1']['input'] | null;
       readonly route: CodecTypes['pg/text@1']['input'] | null;
       readonly routeType:
-        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
-      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
+        | 'BUS'
+        | 'TRAIN_LONG_DISTANCE'
+        | 'TRAIN_COMMUTER'
+        | 'TRAIN_FREIGHT'
+        | 'TRAIN_SHUNT'
+        | 'TRAIN_OTHER'
+        | 'TRAIN_REGIONAL'
+        | 'TRAIN_TRANSFER'
+        | 'TRAIN_SLEEPER'
+        | 'TRAM'
+        | 'FERRY'
+        | 'LIGHT_RAIL';
+      readonly startPointId: CodecTypes['pg/text@1']['input'];
+      readonly startPointName: CodecTypes['pg/text@1']['input'] | null;
+      readonly tripId: CodecTypes['pg/text@1']['input'];
     };
   };
 };
 export type StorageColumnTypes = {
   readonly public: {
     readonly Message: {
-      readonly id: CodecTypes['pg/int4@1']['output'];
-      readonly operator: CodecTypes['pg/text@1']['output'];
+      readonly lat: CodecTypes['pg/float8@1']['output'];
+      readonly lng: CodecTypes['pg/float8@1']['output'];
+      readonly messageId: CodecTypes['pg/int4@1']['output'];
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
+      readonly tripId: CodecTypes['pg/text@1']['output'];
+    };
+    readonly Trip: {
+      readonly dataSource: 'DIGITRAFFIC';
+      readonly departureDate: CodecTypes['pg/date-temporal@1']['output'];
+      readonly endPointId: CodecTypes['pg/text@1']['output'];
+      readonly endPointName: CodecTypes['pg/text@1']['output'] | null;
+      readonly operatorId: CodecTypes['pg/text@1']['output'];
+      readonly operatorName: CodecTypes['pg/text@1']['output'] | null;
       readonly route: CodecTypes['pg/text@1']['output'] | null;
       readonly routeType:
-        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
-      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
+        | 'BUS'
+        | 'TRAIN_LONG_DISTANCE'
+        | 'TRAIN_COMMUTER'
+        | 'TRAIN_FREIGHT'
+        | 'TRAIN_SHUNT'
+        | 'TRAIN_OTHER'
+        | 'TRAIN_REGIONAL'
+        | 'TRAIN_TRANSFER'
+        | 'TRAIN_SLEEPER'
+        | 'TRAM'
+        | 'FERRY'
+        | 'LIGHT_RAIL';
+      readonly startPointId: CodecTypes['pg/text@1']['output'];
+      readonly startPointName: CodecTypes['pg/text@1']['output'] | null;
+      readonly tripId: CodecTypes['pg/text@1']['output'];
     };
   };
 };
 export type StorageColumnInputTypes = {
   readonly public: {
     readonly Message: {
-      readonly id: CodecTypes['pg/int4@1']['input'];
-      readonly operator: CodecTypes['pg/text@1']['input'];
+      readonly lat: CodecTypes['pg/float8@1']['input'];
+      readonly lng: CodecTypes['pg/float8@1']['input'];
+      readonly messageId: CodecTypes['pg/int4@1']['input'];
+      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
+      readonly tripId: CodecTypes['pg/text@1']['input'];
+    };
+    readonly Trip: {
+      readonly dataSource: 'DIGITRAFFIC';
+      readonly departureDate: CodecTypes['pg/date-temporal@1']['input'];
+      readonly endPointId: CodecTypes['pg/text@1']['input'];
+      readonly endPointName: CodecTypes['pg/text@1']['input'] | null;
+      readonly operatorId: CodecTypes['pg/text@1']['input'];
+      readonly operatorName: CodecTypes['pg/text@1']['input'] | null;
       readonly route: CodecTypes['pg/text@1']['input'] | null;
       readonly routeType:
-        'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
-      readonly timestamp: CodecTypes['pg/timestamptz-temporal@1']['input'];
+        | 'BUS'
+        | 'TRAIN_LONG_DISTANCE'
+        | 'TRAIN_COMMUTER'
+        | 'TRAIN_FREIGHT'
+        | 'TRAIN_SHUNT'
+        | 'TRAIN_OTHER'
+        | 'TRAIN_REGIONAL'
+        | 'TRAIN_TRANSFER'
+        | 'TRAIN_SLEEPER'
+        | 'TRAM'
+        | 'FERRY'
+        | 'LIGHT_RAIL';
+      readonly startPointId: CodecTypes['pg/text@1']['input'];
+      readonly startPointName: CodecTypes['pg/text@1']['input'] | null;
+      readonly tripId: CodecTypes['pg/text@1']['input'];
     };
   };
 };
 
 export namespace Models {
   export type public_Message = {
-    id: CodecTypes['pg/int4@1']['output'];
-    operator: CodecTypes['pg/text@1']['output'];
-    route: CodecTypes['pg/text@1']['output'] | null;
-    routeType: 'BUS' | 'TRAIN_LONG_DISTANCE' | 'TRAIN_COMMUTER' | 'TRAM' | 'FERRY' | 'LIGHT_RAIL';
+    lat: CodecTypes['pg/float8@1']['output'];
+    lng: CodecTypes['pg/float8@1']['output'];
+    messageId: CodecTypes['pg/int4@1']['output'];
     timestamp: CodecTypes['pg/timestamptz-temporal@1']['output'];
-    readonly [RelationKeys]?: never;
+    tripId: CodecTypes['pg/text@1']['output'];
+    trip: public_Trip;
+    readonly [RelationKeys]?: 'trip';
+  };
+  export type public_Trip = {
+    dataSource: 'DIGITRAFFIC';
+    departureDate: CodecTypes['pg/date-temporal@1']['output'];
+    endPointId: CodecTypes['pg/text@1']['output'];
+    endPointName: CodecTypes['pg/text@1']['output'] | null;
+    operatorId: CodecTypes['pg/text@1']['output'];
+    operatorName: CodecTypes['pg/text@1']['output'] | null;
+    route: CodecTypes['pg/text@1']['output'] | null;
+    routeType:
+      | 'BUS'
+      | 'TRAIN_LONG_DISTANCE'
+      | 'TRAIN_COMMUTER'
+      | 'TRAIN_FREIGHT'
+      | 'TRAIN_SHUNT'
+      | 'TRAIN_OTHER'
+      | 'TRAIN_REGIONAL'
+      | 'TRAIN_TRANSFER'
+      | 'TRAIN_SLEEPER'
+      | 'TRAM'
+      | 'FERRY'
+      | 'LIGHT_RAIL';
+    startPointId: CodecTypes['pg/text@1']['output'];
+    startPointName: CodecTypes['pg/text@1']['output'] | null;
+    tripId: CodecTypes['pg/text@1']['output'];
+    messages: public_Message[];
+    readonly [RelationKeys]?: 'messages';
   };
 }
 
 export declare const models: {
   public: {
     Message: Models.public_Message;
+    Trip: Models.public_Trip;
   };
 };
 
@@ -317,7 +442,19 @@ type ContractBase = Omit<
           readonly table: {
             readonly Message: {
               columns: {
-                readonly id: {
+                readonly lat: {
+                  readonly dataType: 'pg/float8';
+                  readonly codecId: 'pg/float8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly lng: {
+                  readonly dataType: 'pg/float8';
+                  readonly codecId: 'pg/float8@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly messageId: {
                   readonly dataType: 'pg/int4';
                   readonly codecId: 'pg/int4@1';
                   readonly nullable: false;
@@ -327,10 +464,80 @@ type ContractBase = Omit<
                   };
                   readonly many: false;
                 };
-                readonly operator: {
+                readonly timestamp: {
+                  readonly dataType: 'pg/timestamptz';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly tripId: {
                   readonly dataType: 'pg/text';
                   readonly codecId: 'pg/text@1';
                   readonly nullable: false;
+                  readonly many: false;
+                };
+              };
+              primaryKey: { readonly columns: readonly ['messageId'] };
+              uniques: readonly [];
+              indexes: readonly [
+                {
+                  readonly name: 'Message_tripId_idx_75da6d97';
+                  readonly prefix: 'Message_tripId_idx';
+                  readonly columns: readonly ['tripId'];
+                  readonly unique: false;
+                },
+              ];
+              foreignKeys: readonly [
+                {
+                  readonly source: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Message';
+                    readonly columns: readonly ['tripId'];
+                  };
+                  readonly target: {
+                    readonly namespaceId: 'public' & NamespaceId;
+                    readonly tableName: 'Trip';
+                    readonly columns: readonly ['tripId'];
+                  };
+                },
+              ];
+            };
+            readonly Trip: {
+              columns: {
+                readonly dataSource: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly departureDate: {
+                  readonly dataType: 'pg/date';
+                  readonly codecId: 'pg/date-temporal@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly endPointId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly endPointName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly operatorId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly operatorName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
                   readonly many: false;
                 };
                 readonly route: {
@@ -345,26 +552,48 @@ type ContractBase = Omit<
                   readonly nullable: false;
                   readonly many: false;
                 };
-                readonly timestamp: {
-                  readonly dataType: 'pg/timestamptz';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
+                readonly startPointId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: false;
+                  readonly many: false;
+                };
+                readonly startPointName: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
+                  readonly nullable: true;
+                  readonly many: false;
+                };
+                readonly tripId: {
+                  readonly dataType: 'pg/text';
+                  readonly codecId: 'pg/text@1';
                   readonly nullable: false;
                   readonly many: false;
                 };
               };
-              primaryKey: { readonly columns: readonly ['id'] };
+              primaryKey: { readonly columns: readonly ['tripId'] };
               uniques: readonly [];
               indexes: readonly [];
               foreignKeys: readonly [];
             };
           };
           readonly valueSet: {
+            readonly DataSource: {
+              readonly kind: 'valueSet';
+              readonly values: readonly ['DIGITRAFFIC'];
+            };
             readonly RouteType: {
               readonly kind: 'valueSet';
               readonly values: readonly [
                 'BUS',
                 'TRAIN_LONG_DISTANCE',
                 'TRAIN_COMMUTER',
+                'TRAIN_FREIGHT',
+                'TRAIN_SHUNT',
+                'TRAIN_OTHER',
+                'TRAIN_REGIONAL',
+                'TRAIN_TRANSFER',
+                'TRAIN_SLEEPER',
                 'TRAM',
                 'FERRY',
                 'LIGHT_RAIL',
@@ -382,6 +611,7 @@ type ContractBase = Omit<
   readonly targetFamily: 'sql';
   readonly roots: {
     readonly Message: { readonly namespace: 'public' & NamespaceId; readonly model: 'Message' };
+    readonly Trip: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
   };
   readonly domain: {
     readonly namespaces: {
@@ -389,12 +619,77 @@ type ContractBase = Omit<
         readonly models: {
           readonly Message: {
             readonly fields: {
-              readonly id: {
+              readonly lat: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/float8@1' };
+              };
+              readonly lng: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/float8@1' };
+              };
+              readonly messageId: {
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/int4@1' };
               };
-              readonly operator: {
+              readonly timestamp: {
                 readonly nullable: false;
+                readonly type: {
+                  readonly kind: 'scalar';
+                  readonly codecId: 'pg/timestamptz-temporal@1';
+                };
+              };
+              readonly tripId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly trip: {
+                readonly to: { readonly namespace: 'public' & NamespaceId; readonly model: 'Trip' };
+                readonly cardinality: 'N:1';
+                readonly nullable: false;
+                readonly on: {
+                  readonly localFields: readonly ['tripId'];
+                  readonly targetFields: readonly ['tripId'];
+                };
+              };
+            };
+            readonly storage: {
+              readonly table: 'Message';
+              readonly namespaceId: 'public';
+              readonly fields: {
+                readonly lat: { readonly column: 'lat' };
+                readonly lng: { readonly column: 'lng' };
+                readonly messageId: { readonly column: 'messageId' };
+                readonly timestamp: { readonly column: 'timestamp' };
+                readonly tripId: { readonly column: 'tripId' };
+              };
+            };
+          };
+          readonly Trip: {
+            readonly fields: {
+              readonly dataSource: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly departureDate: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/date-temporal@1' };
+              };
+              readonly endPointId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly endPointName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly operatorId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly operatorName: {
+                readonly nullable: true;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
               readonly route: {
@@ -405,35 +700,70 @@ type ContractBase = Omit<
                 readonly nullable: false;
                 readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
               };
-              readonly timestamp: {
+              readonly startPointId: {
                 readonly nullable: false;
-                readonly type: {
-                  readonly kind: 'scalar';
-                  readonly codecId: 'pg/timestamptz-temporal@1';
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly startPointName: {
+                readonly nullable: true;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+              readonly tripId: {
+                readonly nullable: false;
+                readonly type: { readonly kind: 'scalar'; readonly codecId: 'pg/text@1' };
+              };
+            };
+            readonly relations: {
+              readonly messages: {
+                readonly to: {
+                  readonly namespace: 'public' & NamespaceId;
+                  readonly model: 'Message';
+                };
+                readonly cardinality: '1:N';
+                readonly on: {
+                  readonly localFields: readonly ['tripId'];
+                  readonly targetFields: readonly ['tripId'];
                 };
               };
             };
-            readonly relations: Record<string, never>;
             readonly storage: {
-              readonly table: 'Message';
+              readonly table: 'Trip';
               readonly namespaceId: 'public';
               readonly fields: {
-                readonly id: { readonly column: 'id' };
-                readonly operator: { readonly column: 'operator' };
+                readonly dataSource: { readonly column: 'dataSource' };
+                readonly departureDate: { readonly column: 'departureDate' };
+                readonly endPointId: { readonly column: 'endPointId' };
+                readonly endPointName: { readonly column: 'endPointName' };
+                readonly operatorId: { readonly column: 'operatorId' };
+                readonly operatorName: { readonly column: 'operatorName' };
                 readonly route: { readonly column: 'route' };
                 readonly routeType: { readonly column: 'routeType' };
-                readonly timestamp: { readonly column: 'timestamp' };
+                readonly startPointId: { readonly column: 'startPointId' };
+                readonly startPointName: { readonly column: 'startPointName' };
+                readonly tripId: { readonly column: 'tripId' };
               };
             };
           };
         };
         readonly enum: {
+          readonly DataSource: {
+            readonly codecId: 'pg/text@1';
+            readonly members: readonly [
+              { readonly name: 'DIGITRAFFIC'; readonly value: 'DIGITRAFFIC' },
+            ];
+          };
           readonly RouteType: {
             readonly codecId: 'pg/text@1';
             readonly members: readonly [
               { readonly name: 'BUS'; readonly value: 'BUS' },
               { readonly name: 'TRAIN_LONG_DISTANCE'; readonly value: 'TRAIN_LONG_DISTANCE' },
               { readonly name: 'TRAIN_COMMUTER'; readonly value: 'TRAIN_COMMUTER' },
+              { readonly name: 'TRAIN_FREIGHT'; readonly value: 'TRAIN_FREIGHT' },
+              { readonly name: 'TRAIN_SHUNT'; readonly value: 'TRAIN_SHUNT' },
+              { readonly name: 'TRAIN_OTHER'; readonly value: 'TRAIN_OTHER' },
+              { readonly name: 'TRAIN_REGIONAL'; readonly value: 'TRAIN_REGIONAL' },
+              { readonly name: 'TRAIN_TRANSFER'; readonly value: 'TRAIN_TRANSFER' },
+              { readonly name: 'TRAIN_SLEEPER'; readonly value: 'TRAIN_SLEEPER' },
               { readonly name: 'TRAM'; readonly value: 'TRAM' },
               { readonly name: 'FERRY'; readonly value: 'FERRY' },
               { readonly name: 'LIGHT_RAIL'; readonly value: 'LIGHT_RAIL' },
@@ -441,10 +771,19 @@ type ContractBase = Omit<
           };
         };
         readonly enumMemberTypes?: {
+          readonly DataSource: readonly [
+            { readonly name: 'DIGITRAFFIC'; readonly value: 'DIGITRAFFIC' },
+          ];
           readonly RouteType: readonly [
             { readonly name: 'BUS'; readonly value: 'BUS' },
             { readonly name: 'TRAIN_LONG_DISTANCE'; readonly value: 'TRAIN_LONG_DISTANCE' },
             { readonly name: 'TRAIN_COMMUTER'; readonly value: 'TRAIN_COMMUTER' },
+            { readonly name: 'TRAIN_FREIGHT'; readonly value: 'TRAIN_FREIGHT' },
+            { readonly name: 'TRAIN_SHUNT'; readonly value: 'TRAIN_SHUNT' },
+            { readonly name: 'TRAIN_OTHER'; readonly value: 'TRAIN_OTHER' },
+            { readonly name: 'TRAIN_REGIONAL'; readonly value: 'TRAIN_REGIONAL' },
+            { readonly name: 'TRAIN_TRANSFER'; readonly value: 'TRAIN_TRANSFER' },
+            { readonly name: 'TRAIN_SLEEPER'; readonly value: 'TRAIN_SLEEPER' },
             { readonly name: 'TRAM'; readonly value: 'TRAM' },
             { readonly name: 'FERRY'; readonly value: 'FERRY' },
             { readonly name: 'LIGHT_RAIL'; readonly value: 'LIGHT_RAIL' },

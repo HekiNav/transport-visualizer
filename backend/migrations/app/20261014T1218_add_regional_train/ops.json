@@ -1,0 +1,86 @@
+[
+  {
+    "id": "dropCheckConstraint.Trip.Trip_routeType_check_e60f2168",
+    "label": "Drop check constraint \"Trip_routeType_check_e60f2168\" on \"Trip\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Trip_routeType_check_e60f2168",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_routeType_check_e60f2168\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_e60f2168",
+          "public",
+          "\"public\".\"Trip\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Trip_routeType_check_e60f2168\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" DROP CONSTRAINT \"Trip_routeType_check_e60f2168\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Trip_routeType_check_e60f2168\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_e60f2168",
+          "public",
+          "\"public\".\"Trip\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Trip.Trip_routeType_check_b6410f7b",
+    "label": "Add check constraint \"Trip_routeType_check_b6410f7b\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Trip_routeType_check_b6410f7b",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_routeType_check_b6410f7b\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_b6410f7b",
+          "public",
+          "\"public\".\"Trip\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Trip_routeType_check_b6410f7b\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ADD CONSTRAINT \"Trip_routeType_check_b6410f7b\" CHECK (\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAIN_FREIGHT', 'TRAIN_SHUNT', 'TRAIN_OTHER', 'TRAIN_REGIONAL', 'TRAIN_TRANSFER', 'TRAIN_SLEEPER', 'TRAM', 'FERRY', 'LIGHT_RAIL'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Trip_routeType_check_b6410f7b\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_b6410f7b",
+          "public",
+          "\"public\".\"Trip\""
+        ]
+      }
+    ]
+  }
+]
