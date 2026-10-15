@@ -32,13 +32,14 @@ The API always returns JSON. The JSON can include an error or data
 
 Returns a list of trips, optionally including location messages.
 
-### Query parameters
+#### Query parameters
 
 **messages**: If the parameter is defined (no value required), messages are included for each trip
 
 **dataSource**: Filters the data source of trips. Valid values: DIGITRAFFIC
 
 **departureDate**: Filters the departure date of trips. Valid values: RFC3339 date format. Example: `2026-10-15`
+**departureDateRange**: Filters the departure date of trips with a range. Valid values: Two RFC3339 dates. Example: `2026-10-15:2027-01-01`
 
 **endPoint**: Filters endPointId attribute of trips. Comma-separated values are treated as an OR statement. Example: `HKI,ROI,KV,TPET`
 
@@ -46,7 +47,7 @@ Returns a list of trips, optionally including location messages.
 
 **terminus**: Filters trips by either the start point or the end point, so a value of `HKI` matches trips starting and ending at Helsinki station. The same comma function as endPoint applies.
 
-### Data format
+#### Data format
 
 ```json
 {
@@ -75,6 +76,25 @@ Returns a list of trips, optionally including location messages.
                 // ...
             ],
         }
+        // ...
+    ]
+}
+```
+### /api/v2/dates
+
+Returns a list of departure dates with data available
+
+#### Query parameters
+
+**dataSource**: Filters the data source of departure dates. Valid values: DIGITRAFFIC
+
+#### Data format
+
+```json
+{
+    "data": [
+        "2026-10-14",
+        "2026-10-15"
         // ...
     ]
 }

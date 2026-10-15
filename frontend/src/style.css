@@ -1,5 +1,22 @@
 @import "tailwindcss";
+@import "flatpickr";
+
+@font-face {
+    font-family: Jost;
+    src: url("/Jost-VariableFont_wght.ttf");
+}
 
 :root {
+    font-family: Jost;
+}
 
+.gutter {
+    background-color: #222;
+    background-repeat: no-repeat;
+    background-position: 50%;
+    flex-grow: 100;
+}
+
+.gutter.gutter-horizontal {
+    cursor: col-resize;
 }

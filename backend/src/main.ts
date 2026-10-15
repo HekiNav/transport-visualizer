@@ -1,6 +1,6 @@
 import mqtt from "mqtt"
 import { db, type Tx } from "./prisma/db"
-import { or, type CollectionRowOf } from "@prisma/orm-postgres/orm-client";
+import { and, or, type CollectionRowOf } from "@prisma/orm-postgres/orm-client";
 import express from "express"
 import rateLimit from "express-rate-limit";
 import z, { success } from "zod";
@@ -149,6 +149,11 @@ async function start() {
       if (req.query.departureDate) {
         query = query.where(p => p.departureDate.eq(Temporal.PlainDate.from(req.query.departureDate!.toString())))
       }
+      if (req.query.departureDateRange) {
+        const [min, max] = req.query.departureDateRange.toString().split(":")
+        if (!min || !max) throw "Invalid departureDateRange format. Valid format is YYYY-MM-DD:YYYY-MM-DD"
+        query = query.where(p => and(p.departureDate.lte(Temporal.PlainDate.from(max)), p.departureDate.gte(Temporal.PlainDate.from(min))))
+      }
       if (req.query.startPoint) {
         query = query.where(p => p.startPointId.in(req.query.startPoint?.toString().split(",") || []))
       }
@@ -187,14 +192,57 @@ async function start() {
 
     if (req.query.messages !== undefined) {
       console.log("djjdj")
-      query = query.include("messages")
+      query = query.include("messages", (p) => p.orderBy((e) => e.timestamp.asc()))
+    }
+    try {
+      const trips = await query.all()
+      res.json({
+        data: trips,
+        success: true
+      })
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: `Failed to query data: ${error}`,
+        success: false
+      })
     }
 
-    const trips = await query.all()
-    res.json({
-      data: trips,
-      success: true
-    })
+  })
+  app.get("/api/v1/dates", async (req, res) => {
+    try {
+      let query = db.orm.public.Trip.select("departureDate").distinct("departureDate")
+      try {
+        if (req.query.dataSource) {
+          const typeEnum = z.enum(["DIGITRAFFIC"])
+          const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource)
+          if (!success) {
+            throw `Invalid routeType: ${z.treeifyError(error).errors}`
+          } else {
+            query = query.where(p => p.dataSource.eq(data))
+          }
+        }
+      } catch (error) {
+        res.status(500).json({
+          code: 500,
+          message: `Failed to parse parameter: ${error}`,
+          success: false
+        })
+        return
+      }
+      const dates = await query.all()
+      res.json({
+        data: dates.map(t => t.departureDate),
+        success: true
+      })
+    } catch (error) {
+      res.status(500).json({
+        code: 500,
+        message: `Failed to query data: ${error}`,
+        success: false
+      })
+    }
+
   })
 
 }

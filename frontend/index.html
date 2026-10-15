@@ -4,11 +4,15 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>transport-visualizer-frontend</title>
+    <title>Hekinav Transport Visualizer</title>
   </head>
-  <body>
-    <div id="app" class="h-screen">
-      <div id="map" class="h-full"></div>
+  <body class="bg-neutral-900">
+    <div id="app" class="h-screen flex">
+      <div id="content" class="h-full bg-neutral-900 p-8">
+        <h1 class="text-4xl text-sky-600 mb-4">Hekinav Transport Visualizer</h1>
+        <input type="datetime" name="" id="daterange" class="border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-sky-600">
+      </div>
+      <div id="map" class="h-full shrink"></div>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
