@@ -57,6 +57,14 @@ type DigitrafficStation = {
   type: "STATION" | "STOPPING_POINT" | "TURNOUT_IN_THE_OPEN_LINE"
 }
 
+const toastConfig = {
+  className: "border-neutral-200 border-2 p-1 rounded-lg! text-neutral-200 accent-cyan-500 text-xl bg-neutral-900! p-2!",
+  style: {
+    background: "0",
+    boxShadow: "none"
+  }
+}
+
 Split(['#content', '#map'], {
   direction: 'horizontal',
   minSize: 50,
@@ -74,6 +82,35 @@ picker.setDate(["2026-10-01", "2026-10-02"])
 const loadButton: HTMLButtonElement = document.querySelector("#load")!
 
 loadButton.addEventListener("click", loadMap)
+
+const backgroundMapCheckbox: HTMLInputElement = document.querySelector("#backgroundMap")!
+
+backgroundMapCheckbox.addEventListener("change", () => {
+  // map breaks if togglig visibility and loading trip paths at the same time
+  if (!map.loaded() || !map.isStyleLoaded()) {
+    Toastify({
+      text: "Map not loaded, please wait and try again",
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      ...toastConfig,
+    }).showToast()
+    return
+  }
+  map
+    .getLayersOrder()
+    .map(id => map.getLayer(id))
+    .filter(layer => layer?.source == "openmaptiles")
+    .forEach(layer => {
+      console.log("jjdjdj")
+      layer?.setLayoutProperty("visibility", backgroundMapCheckbox.checked ? "visible" : "none")
+    })
+  if (!map.loaded() || !map.isStyleLoaded()) {
+    map.once("style.load", () => map.redraw())
+  } else {
+    map.redraw()
+  }
+})
 
 const dataSourcePicker = new SlimSelect({
   select: '#dataSource',
@@ -202,49 +239,73 @@ async function loadMap() {
       type: "FeatureCollection",
       features: []
     })
-    return
-  }
-
-  const response = await fetch(API_URL + `/api/v1/trips?messages&departureDateRange=${dateRange}&dataSource=${dataSources.join(",")}&routeType=${routeTypes.join(",")}&terminus=${terminuses.join(",")}`)
-  const json: APIResponse<APITrip[]> = await response.json()
-  if (!json.success) {
-    throw json.message
-  }
-
-  if (json.data.length == 0) {
     Toastify({
-      text: "No data for the selected filters",
+      text: "No data for the selected filters. Try to add a data source and routeType",
       duration: 3000,
-      close: true,
       gravity: "top",
       position: "right",
-      className: "border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500 bg-neutral-900!",
-      stopOnFocus: true,
+      ...toastConfig,
+    }).showToast()
+    return
+  }
+  try {
+    const response = await fetch(API_URL + `/api/v1/trips?messages&departureDateRange=${dateRange}&dataSource=${dataSources.join(",")}&routeType=${routeTypes.join(",")}&terminus=${terminuses.join(",")}`)
+    const json: APIResponse<APITrip[]> = await response.json()
+
+
+    if (!json.success) {
+      throw json.message
+    }
+
+    if (json.data.length == 0) {
+      Toastify({
+        text: "No data for the selected filters",
+        duration: 3000,
+        gravity: "top",
+        position: "right",
+        ...toastConfig,
+      }).showToast()
+      return
+    }
+
+    const bounds = (json.data[0] && json.data[0].messages && json.data[0].messages?.length > 1) ? new LngLatBounds(json.data[0].messages![0], json.data[0].messages![1]) : null
+
+    const polylines: GeoJSON.Feature<GeoJSON.LineString, APITrip>[] = json.data.map(({ messages, ...trip }) => {
+      if (bounds) messages?.forEach(msg => bounds.extend(msg))
+      return {
+        type: "Feature",
+        geometry: {
+          type: "LineString",
+          coordinates: (messages || []).map(msg => [msg.lng, msg.lat])
+        },
+        properties: trip
+      }
+    });
+    (map.getSource("lines") as GeoJSONSource).setData({
+      type: "FeatureCollection",
+      features: polylines
+    })
+    if (bounds) map.fitBounds(bounds, {
+      padding: 100,
+      essential: true,
+      duration: 1000
+    })
+    Toastify({
+      text: `Loaded ${json.data.length} trips`,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      ...toastConfig,
+    }).showToast()
+  } catch (error) {
+    Toastify({
+      text: `Failed to load trips: ${error} ${String(error).includes("RangeError: Invalid string length") ? ". POSSIBLE FIX: Try to request less data." : ""}`,
+      duration: 3000,
+      gravity: "top",
+      position: "right",
+      ...toastConfig,
     }).showToast()
   }
-
-  const bounds = (json.data[0] && json.data[0].messages && json.data[0].messages?.length > 1) ? new LngLatBounds(json.data[0].messages![0], json.data[0].messages![1]) : null
-
-  const polylines: GeoJSON.Feature<GeoJSON.LineString, APITrip>[] = json.data.map(({ messages, ...trip }) => {
-    if (bounds) messages?.forEach(msg => bounds.extend(msg))
-    return {
-      type: "Feature",
-      geometry: {
-        type: "LineString",
-        coordinates: (messages || []).map(msg => [msg.lng, msg.lat])
-      },
-      properties: trip
-    }
-  });
-  (map.getSource("lines") as GeoJSONSource).setData({
-    type: "FeatureCollection",
-    features: polylines
-  })
-  if (bounds) map.fitBounds(bounds, {
-    padding: 100,
-    essential: true,
-    duration: 1000
-  })
 }
 
 async function loadDatePicker(dataSources: string[] = []) {
