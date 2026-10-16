@@ -247,10 +247,7 @@ async function start() {
 
 }
 
-export const stats = { total: 0, noDetails: 0, tooSoon: 0, tooClose: 0, logged: 0 }
-
 export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTrafficTrain[], tx: Tx) {
-  stats.total++
   try {
     const json = msg.data
     const tripId = `${json.departureDate}/${json.trainNumber}`
@@ -285,13 +282,11 @@ export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: Di
     // skip event if its been less than 15 seconds or the vehicle has moved less than 10m
     if (Temporal.Duration.compare(now.since(seen.lastTime), Temporal.Duration.from({ seconds: 15 })) == -1) {
       //console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
-      stats.tooSoon++
-    } else if (distance < 0.01 || (distance > 5 && seen.lastPos.lat != 0)) {
+    } else if (distance < 0.01 || (distance > 10 && seen.lastPos.lat != 0)) {
       //console.log(`Skipping ${seen.trip.route} due to distance`)
-      stats.tooClose++
+      seenTrips.set(tripId, { trip: seen.trip, lastPos: msgPos, lastTime: seen.lastTime })
     } else {
       //console.log(`Logging ${seen.trip.route}`)
-      stats.logged++
       await tx.orm.public.Message.create({
         ...msgPos,
         timestamp: Temporal.Instant.from(now),

@@ -106,7 +106,7 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
     if (Temporal.Duration.compare(now.since(seen.lastTime).abs(), Temporal.Duration.from({ seconds: 15 })) == -1) {
       //console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
       stats.tooSoon++
-    } else if (distance < 0.01 || (distance > 5 && seen.lastPos.lat != 0)) {
+    } else if (distance < 0.01 || (distance > 10 && seen.lastPos.lat != 0)) {
       //console.log(`Skipping ${seen.trip.route} due to distance`)
       stats.tooClose++
       seenTrips.set(tripId, { trip: seen.trip, lastPos: msgPos, lastTime: seen.lastTime })
