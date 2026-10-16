@@ -1,19 +1,52 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hekinav Transport Visualizer</title>
-  </head>
-  <body class="bg-neutral-900">
-    <div id="app" class="h-screen flex">
-      <div id="content" class="h-full bg-neutral-900 p-8">
-        <h1 class="text-4xl text-sky-600 mb-4">Hekinav Transport Visualizer</h1>
-        <input type="datetime" name="" id="daterange" class="border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-sky-600">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hekinav Transport Visualizer</title>
+</head>
+
+<body class="bg-neutral-900">
+  <div id="app" class="h-screen flex">
+    <div id="content" class="h-full bg-neutral-900 p-8">
+      <h1 class="text-4xl text-cyan-500 mb-4">Hekinav Transport Visualizer</h1>
+      <h2 class="text-2xl text-cyan-500 mb-4">1. Select data</h2>
+      <div class="w-full flex justify-between gap-4 items-center">
+        <label for="dataSource" class="text-nowrap grow-1 text-lg text-neutral-200">Data source</label>
+        <select id="dataSource" class="shrink-1" multiple>
+          <option value="DIGITRAFFIC" selected>Digitraffic</option>
+        </select>
       </div>
-      <div id="map" class="h-full shrink"></div>
+      <div class="w-full flex justify-between gap-4 items-center">
+        <label for="daterange" class="text-nowrap grow-1 text-lg text-neutral-200">Date range</label>
+        <input type="datetime" name="" id="daterange"
+          class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500">
+      </div>
+      <div class="w-full flex justify-between gap-4 items-center">
+        <label for="routeType" class="text-nowrap grow-1 text-lg text-neutral-200">Route types</label>
+        <select id="routeType" multiple>
+          <!-- <option value="BUS">Bus</option> -->
+          <option value="TRAIN_LONG_DISTANCE">Long-distance trains</option>
+          <option value="TRAIN_COMMUTER">Commuter trains</option>
+          <option value="TRAIN_FREIGHT">Freight trains</option>
+          <option value="TRAIN_SHUNT">Shunting trains</option>
+          <option value="TRAIN_REGIONAL">Regional trains</option>
+          <option value="TRAIN_TRANSFER">Stock transfer trains</option>
+          <option value="TRAIN_SLEEPER">Sleeper trains</option>
+          <option value="TRAIN_OTHER">Other trains</option>
+          <!-- <option value="TRAM"></option>
+        <option value="FERRY"></option>
+        <option value="LIGHT_RAIL"></option> -->
+        </select>
+      </div>
+      <button id="load"
+        class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Load</button>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+    <div id="map" class="h-full shrink"></div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+
 </html>

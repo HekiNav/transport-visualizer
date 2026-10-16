@@ -7,13 +7,13 @@ import z, { success } from "zod";
 import cors from "cors"
 
 // Types
-type Message = CollectionRowOf<typeof db.orm.public.Message>
-type Trip = CollectionRowOf<typeof db.orm.public.Trip>
-type RouteType = Trip["routeType"]
+export type Message = CollectionRowOf<typeof db.orm.public.Message>
+export type Trip = CollectionRowOf<typeof db.orm.public.Trip>
+export type RouteType = Trip["routeType"]
 
 export type MQTTMessage = {
   source: "DIGITRAFFIC",
-  data: Buffer
+  data: any
 }
 export type LatLng = {
   lat: number,
@@ -65,7 +65,7 @@ query TrainDetailsQuery($trainNumber: Int!, $depDate: Date!) {
   }
 }
 `
-const digitrafficAllTrainDetailsQuery = `
+export const digitrafficAllTrainDetailsQuery = `
 query AllTrainDetailsQuery($depDate: Date!) {
   trainsByDepartureDate(departureDate: $depDate) {
     departureDate
@@ -121,7 +121,7 @@ async function start() {
       nextBatch.length = 0
       //console.log(`Processing batch: ${currentBatch.length} messages`)
       db.transaction(tx =>
-        Promise.all(currentBatch.map((msg, i) => parseMessage({ data: msg, source: "DIGITRAFFIC" }, allDigitrafficTrainDetails, tx)))
+        Promise.all(currentBatch.map((msg, i) => parseMessage({ data: JSON.parse(msg.toString()), source: "DIGITRAFFIC" }, allDigitrafficTrainDetails, tx)))
       )
     }
 
@@ -164,21 +164,21 @@ async function start() {
         query = query.where(p => or(p.startPointId.in(req.query.terminus?.toString().split(",") || []), p.endPointId.in(req.query.terminus?.toString().split(",") || [])))
       }
       if (req.query.dataSource) {
-        const typeEnum = z.enum(["DIGITRAFFIC"])
-        const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource)
+        const typeEnum = z.array(z.enum(["DIGITRAFFIC"]))
+        const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource.toString().split(","))
         if (!success) {
           throw `Invalid routeType: ${z.treeifyError(error).errors}`
         } else {
-          query = query.where(p => p.dataSource.eq(data))
+          query = query.where(p => p.dataSource.in(data))
         }
       }
       if (req.query.routeType) {
-        const typeEnum = z.enum(["BUS", "TRAIN_LONG_DISTANCE", "TRAIN_COMMUTER", "TRAIN_FREIGHT", "TRAIN_SHUNT", "TRAIN_OTHER", "TRAIN_REGIONAL", "TRAIN_TRANSFER", "TRAIN_SLEEPER", "TRAM", "FERRY", "LIGHT_RAIL"])
-        const { success, data, error } = await typeEnum.safeParseAsync(req.query.routeType)
+        const typeEnum = z.array(z.enum(["BUS", "TRAIN_LONG_DISTANCE", "TRAIN_COMMUTER", "TRAIN_FREIGHT", "TRAIN_SHUNT", "TRAIN_OTHER", "TRAIN_REGIONAL", "TRAIN_TRANSFER", "TRAIN_SLEEPER", "TRAM", "FERRY", "LIGHT_RAIL"]))
+        const { success, data, error } = await typeEnum.safeParseAsync(req.query.routeType.toString().split(","))
         if (!success) {
           throw `Invalid routeType: ${z.treeifyError(error).errors}`
         } else {
-          query = query.where(p => p.routeType.eq(data))
+          query = query.where(p => p.routeType.in(data))
         }
       }
     } catch (error) {
@@ -247,10 +247,12 @@ async function start() {
 
 }
 
-async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTrafficTrain[], tx: Tx) {
-  try {
-    const json = JSON.parse(msg.data.toString())
+export const stats = { total: 0, noDetails: 0, tooSoon: 0, tooClose: 0, logged: 0 }
 
+export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTrafficTrain[], tx: Tx) {
+  stats.total++
+  try {
+    const json = msg.data
     const tripId = `${json.departureDate}/${json.trainNumber}`
 
     const msgPos = { lat: json.location.coordinates[1], lng: json.location.coordinates[0] }
@@ -277,15 +279,19 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
 
     // This should never happen
     if (!seen) return
+    
+    const distance = haversineDistance(seen.lastPos, msgPos)
 
     // skip event if its been less than 15 seconds or the vehicle has moved less than 10m
     if (Temporal.Duration.compare(now.since(seen.lastTime), Temporal.Duration.from({ seconds: 15 })) == -1) {
       //console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
-    } else if (haversineDistance(seen.lastPos, msgPos) < 0.01) {
+      stats.tooSoon++
+    } else if (distance < 0.01 || (distance > 5 && seen.lastPos.lat != 0)) {
       //console.log(`Skipping ${seen.trip.route} due to distance`)
+      stats.tooClose++
     } else {
       //console.log(`Logging ${seen.trip.route}`)
-
+      stats.logged++
       await tx.orm.public.Message.create({
         ...msgPos,
         timestamp: Temporal.Instant.from(now),
@@ -303,7 +309,7 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
 }
 
 
-async function getDigitrafficDetails(trainNumber: number, depDate: string, digitrafficTrainDetails: DigiTrafficTrain[]): Promise<Omit<Trip, "dataSource" | "tripId"> | null> {
+export async function getDigitrafficDetails(trainNumber: number, depDate: string, digitrafficTrainDetails: DigiTrafficTrain[]): Promise<Omit<Trip, "dataSource" | "tripId"> | null> {
   const train: DigiTrafficTrain = digitrafficTrainDetails.find(train => train.departureDate == depDate && train.trainNumber == trainNumber) || (await GraphQl(digitrafficTrainDetailsQuery, process.env.DIGITRAFFIC_GRAPHQL || "https://rata.digitraffic.fi/api/v2/graphql/graphql", { trainNumber, depDate }, JSON.parse(process.env.DIGITRAFFIC_HEADERS || "{}") || {})).data.train[0]
   if (!train) return null
   const firstStation = train.timeTableRows[0]!.station
@@ -414,7 +420,7 @@ function haversineDistance(coords1: LatLng, coords2: LatLng) {
 }
 
 
-async function GraphQl(query: string, url: string, variables: { [key: string]: any } = {}, headers = {}) {
+export async function GraphQl(query: string, url: string, variables: { [key: string]: any } = {}, headers = {}) {
   try {
     return await (await fetch(url, {
       body: JSON.stringify({
