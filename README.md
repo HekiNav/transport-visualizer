@@ -102,4 +102,15 @@ Returns a list of departure dates with data available
 
 # Frontend
 
-The frontend fetches data from the backend and shows it on an interactive Maplibre map. 
+The frontend fetches data from the backend and shows it on an interactive Maplibre map. The frontend is built with Vanilla TS and Vite.
+
+## Usage
+
+All commands should be executed in the `/frontend` directory
+
+**Important!** Make sure to get your own Maptiler API key (free) and update it to `/public/map_style.json`
+
+1. Install dependencies `npm install`
+2. Start dev server `npm run dev`
+3. Build production version `npm run build`
+4. Test production version locally `npm run preview`
