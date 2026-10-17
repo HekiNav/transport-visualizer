@@ -99,3 +99,7 @@ Returns a list of departure dates with data available
     ]
 }
 ```
+
+# Frontend
+
+The frontend fetches data from the backend and shows it on an interactive Maplibre map. 

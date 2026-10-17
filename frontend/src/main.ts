@@ -6,10 +6,11 @@ import Split from 'split.js'
 import type { Instance } from 'flatpickr/dist/types/instance';
 import SlimSelect from 'slim-select';
 import Toastify from "toastify-js"
+import Coloris from "@melloware/coloris";
 
 import './style.css'
 import "toastify-js/src/toastify.css"
-
+import "@melloware/coloris/dist/coloris.css";
 
 // API Types
 type APIMessage = {
@@ -29,11 +30,13 @@ type APITrip = {
   operatorId: string;
   operatorName: string | null;
   route: string | null;
-  routeType: "BUS" | "TRAIN_LONG_DISTANCE" | "TRAIN_COMMUTER" | "TRAIN_FREIGHT" | "TRAIN_SHUNT" | "TRAIN_OTHER" | "TRAIN_REGIONAL" | "TRAIN_TRANSFER" | "TRAIN_SLEEPER" | "TRAM" | "FERRY" | "LIGHT_RAIL";
+  routeType: APIRouteType;
   startPointId: string;
   startPointName: string | null;
   messages?: APIMessage[]
 }
+
+type APIRouteType = /* "BUS" | */ "TRAIN_LONG_DISTANCE" | "TRAIN_COMMUTER" | "TRAIN_FREIGHT" | "TRAIN_SHUNT" | "TRAIN_OTHER" | "TRAIN_REGIONAL" | "TRAIN_TRANSFER" | "TRAIN_SLEEPER"/*  | "TRAM" | "FERRY" | "LIGHT_RAIL" */
 
 type APIError = {
   code: number,
@@ -65,6 +68,55 @@ const toastConfig = {
   }
 }
 
+const routeTypeNames: { [t in APIRouteType]: string } = {
+  TRAIN_COMMUTER: "Commuter train",
+  TRAIN_FREIGHT: "Freight train",
+  TRAIN_LONG_DISTANCE: "Long-distance train",
+  TRAIN_REGIONAL: "Regional train",
+  TRAIN_SLEEPER: "Sleeper train",
+  TRAIN_TRANSFER: "Stock transfer train",
+  TRAIN_SHUNT: "Shunting train",
+  TRAIN_OTHER: "Other train",
+}
+
+const ColorSwatch = {
+  RED_PINK: "#ff0088",
+  PURPLE: "#8800ff",
+  BLUE_CYAN: "#0088ff",
+  CYAN_GREEN: "#00ff88",
+  GREEN_YELLOW: "#88ff00",
+  ORANGE: "#ff8800",
+  WHITE: "#ffffff",
+  PINK: "#ff00ff",
+  BLUE: "#0000ff",
+  CYAN: "#00ffff",
+  GREEN: "#00ff00",
+  YELLOW: "#ffff00",
+  RED: "#ff0000"
+
+
+}
+
+
+const defaultColors: { [t in APIRouteType]: string } = {
+  TRAIN_COMMUTER: ColorSwatch.PURPLE,
+  TRAIN_FREIGHT: ColorSwatch.BLUE,
+  TRAIN_SLEEPER: ColorSwatch.CYAN,
+  TRAIN_LONG_DISTANCE: ColorSwatch.GREEN,
+  TRAIN_TRANSFER: ColorSwatch.YELLOW,
+  TRAIN_SHUNT: ColorSwatch.ORANGE,
+  TRAIN_REGIONAL: ColorSwatch.RED,
+  TRAIN_OTHER: ColorSwatch.PINK,
+}
+
+
+
+let selectedColors = { ...defaultColors }
+let selectedColor = ColorSwatch.CYAN
+let lastColorReload = 0
+
+Coloris.init();
+
 Split(['#content', '#map'], {
   direction: 'horizontal',
   minSize: 50,
@@ -82,6 +134,14 @@ picker.setDate(["2026-10-01", "2026-10-02"])
 const loadButton: HTMLButtonElement = document.querySelector("#load")!
 
 loadButton.addEventListener("click", loadMap)
+
+const resetColorsButton: HTMLButtonElement = document.querySelector("#resetColors")!
+
+resetColorsButton.addEventListener("click", () => {
+  selectedColors = { ...defaultColors }
+  selectedColor = ColorSwatch.CYAN
+  loadColorPickers()
+})
 
 const backgroundMapCheckbox: HTMLInputElement = document.querySelector("#backgroundMap")!
 
@@ -102,15 +162,17 @@ backgroundMapCheckbox.addEventListener("change", () => {
     .map(id => map.getLayer(id))
     .filter(layer => layer?.source == "openmaptiles")
     .forEach(layer => {
-      console.log("jjdjdj")
-      layer?.setLayoutProperty("visibility", backgroundMapCheckbox.checked ? "visible" : "none")
+      map?.setLayoutProperty(layer?.id || "", "visibility", backgroundMapCheckbox.checked ? "visible" : "none")
     })
-  if (!map.loaded() || !map.isStyleLoaded()) {
-    map.once("style.load", () => map.redraw())
-  } else {
-    map.redraw()
-  }
 })
+
+const colorsByRoutetypeCheckbox: HTMLInputElement = document.querySelector("#routeTypeColors")!
+
+colorsByRoutetypeCheckbox.addEventListener("change", () => {
+  loadColorPickers()
+})
+
+const colorsContainer: HTMLInputElement = document.querySelector("#colors")!
 
 const dataSourcePicker = new SlimSelect({
   select: '#dataSource',
@@ -135,7 +197,7 @@ const routeTypePicker = new SlimSelect({
   },
   events: {
     afterChange() {
-      //loadMap()
+      loadColorPickers()
     },
   }
 })
@@ -179,15 +241,16 @@ async function start() {
     source: "lines",
     type: "line",
     paint: {
-      "line-color": "#00ffff1f",
-      "line-width": 1
+      "line-color": "#fff",
+      "line-width": 1,
+      "line-opacity": 0.01
     }
   })
   loadDatePicker()
+  loadColorPickers()
 
   if (localStorage.getItem("selectedStations")) {
     try {
-      console.log(JSON.parse(localStorage.getItem("selectedStations") || "[]"))
       terminusPicker.setSelected(JSON.parse(localStorage.getItem("selectedStations") || "[]"))
     } catch (error) {
       console.error(`Failed to load stored station list`)
@@ -221,6 +284,58 @@ function getStoredStationList() {
   } catch (error) {
     return fallbackStations
   }
+}
+
+function reloadMapColours() {
+  lastColorReload = Date.now()
+  let lastTime = lastColorReload
+  setTimeout(() => {
+    if (lastTime != lastColorReload) return
+    if (colorsByRoutetypeCheckbox.checked) {
+      map?.setPaintProperty("lines", "line-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
+    } else {
+      map?.setPaintProperty("lines", "line-color", selectedColor)
+    }
+  }, 100)
+}
+
+function loadColorPickers() {
+  colorsContainer.innerHTML = "";
+  if (colorsByRoutetypeCheckbox.checked) {
+    (Object.entries(selectedColors) as [APIRouteType, string][]).filter(([type]) => routeTypePicker.getSelected().some(t => t == type)).forEach(([type, color]) => {
+      colorsContainer.innerHTML += `
+        <div class="w-full flex justify-start gap-4 items-center full my-1">
+          <input type="text" data-coloris id="color-${type}" autocomplete="off" value="${color}">
+          <label for="color-${type}" class="text-nowrap grow-1 text-lg text-neutral-200">${routeTypeNames[type]}</label>
+        </div>
+        `
+      Coloris({
+        el: `#color-${type}`,
+        alpha: false,
+        format: "hex",
+        theme: "polaroid",
+        themeMode: "dark",
+        onChange: (c, el) => { selectedColors[el?.id.slice(6) as APIRouteType] = c; reloadMapColours() },
+        swatches: Object.values(ColorSwatch)
+      })
+    })
+  } else {
+    colorsContainer.innerHTML += `
+        <div class="w-full flex justify-start gap-4 items-center full my-1">
+          <input type="text" data-coloris id="color" autocomplete="off" value="${selectedColor}">
+        </div>
+        `
+    Coloris({
+      el: `#color`,
+      alpha: false,
+      format: "hex",
+      theme: "polaroid",
+      themeMode: "dark",
+      onChange: (c) => { selectedColor = c; reloadMapColours() },
+      swatches: Object.values(ColorSwatch)
+    })
+  }
+  reloadMapColours()
 }
 
 async function loadMap() {
@@ -290,6 +405,9 @@ async function loadMap() {
       essential: true,
       duration: 1000
     })
+
+    reloadMapColours()
+
     Toastify({
       text: `Loaded ${json.data.length} trips`,
       duration: 3000,

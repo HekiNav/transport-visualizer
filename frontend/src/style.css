@@ -34,13 +34,31 @@
     --ss-animation-timing: 0.15s;
 }
 
-.ss-main, .ss-content {
-  box-shadow: none !important;
-  border-width: 2px;
+.full .clr-field button {
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
+    border: #e5e5e5 2px solid;
 }
+.full .clr-field input {
+    width: 30px;
+    height: 30px;
+}
+
+.clr-picker {
+    width: 250px !important;
+}
+
+.ss-main,
+.ss-content {
+    box-shadow: none !important;
+    border-width: 2px;
+}
+
 .ss-content {
     border-top-width: 1px;
 }
+
 .ss-search {
     color: #e5e5e5;
 }
