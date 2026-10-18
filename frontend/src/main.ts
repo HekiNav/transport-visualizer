@@ -1,4 +1,4 @@
-import { GeoJSONSource, LngLatBounds, Map } from 'maplibre-gl';
+import { GeoJSONSource, LngLatBounds, Map, setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import flatpickr from "flatpickr";
 import * as GeoJSON from "geojson"
@@ -7,6 +7,7 @@ import type { Instance } from 'flatpickr/dist/types/instance';
 import SlimSelect from 'slim-select';
 import Toastify from "toastify-js"
 import Coloris from "@melloware/coloris";
+import workerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?worker&url';
 
 import './style.css'
 import "toastify-js/src/toastify.css"
@@ -17,14 +18,14 @@ type APIMessage = {
   lat: number;
   lng: number;
   messageId: number;
-  timestamp: Temporal.Instant;
+  timestamp: string;
   tripId: string;
 }
 
 type APITrip = {
   tripId: string;
   dataSource: "DIGITRAFFIC";
-  departureDate: Temporal.PlainDate;
+  departureDate: string;
   endPointId: string;
   endPointName: string | null;
   operatorId: string;
@@ -118,10 +119,16 @@ let lastColorReload = 0
 let timelapse = false
 let timelapseFrameDuration = 60_000
 let timelapseTailLength = 10
+let timelapseSpeedMultiplier = 1
 let trips: APITrip[] = []
 let timelapseData: APITrip[][] = []
 let timelapseFrame: number = 0
 let timelapseTimeout: number | null = null
+
+
+
+setWorkerUrl(workerUrl);
+
 
 Coloris.init();
 
@@ -131,13 +138,13 @@ Split(['#content', '#map'], {
   snapOffset: 0,
   gutterSize: 10,
   gutterAlign: "center"
-}).setSizes([30, 70])
+}).setSizes([40, 60])
 
 const picker = flatpickr("#daterange", {
   mode: "range",
   onClose: loadMap
 }) as Instance
-picker.setDate(["2026-10-01", "2026-10-02"])
+picker.setDate(["2026-10-18", "2026-10-18"])
 
 const loadButton: HTMLButtonElement = document.querySelector("#load")!
 
@@ -151,6 +158,18 @@ resetColorsButton.addEventListener("click", () => {
   loadColorPickers()
 })
 
+const opacity: HTMLInputElement = document.querySelector("#opacity")!
+const opacityLabel: HTMLInputElement = document.querySelector("#opacityLabel")!
+
+opacity.addEventListener("change", onOpacity())
+opacity.addEventListener("mousemove", onOpacity())
+
+const timelapseSpeed: HTMLInputElement = document.querySelector("#timelapseSpeed")!
+const timelapseSpeedLabel: HTMLInputElement = document.querySelector("#timelapseSpeedLabel")!
+
+timelapseSpeed.addEventListener("change", onTimelapseSpeed())
+timelapseSpeed.addEventListener("mousemove", onTimelapseSpeed())
+
 const toggleTimelapseButton: HTMLButtonElement = document.querySelector("#toggleTimelapse")!
 const timelapseContainer: HTMLButtonElement = document.querySelector("#timelapse")!
 
@@ -158,7 +177,7 @@ toggleTimelapseButton.addEventListener("click", () => {
   timelapse = !timelapse
   timelapseContainer.hidden = !timelapse
   toggleTimelapseButton.textContent = timelapse ? "Switch to normal mode" : "Switch to timelapse"
-  map?.setPaintProperty("lines", "line-opacity", timelapse ? 1 : 0.01)
+  time.hidden = !timelapse
   if (timelapse) {
     renderTimelapseFrame(timelapseFrame)
   } else {
@@ -166,21 +185,17 @@ toggleTimelapseButton.addEventListener("click", () => {
   }
 })
 
+
+const totalFrames: HTMLSpanElement = document.querySelector("#totalFrames")!
+const currentFrame: HTMLSpanElement = document.querySelector("#currentFrame")!
+
+const time: HTMLDivElement = document.querySelector("#time")!
+
 const playTimelapseButton: HTMLButtonElement = document.querySelector("#playTimelapse")!
 
 playTimelapseButton.addEventListener("click", () => {
   if (!timelapse) return
-  if (timelapseTimeout) {
-    playTimelapseButton.textContent = "Play"
-    clearInterval(timelapseTimeout)
-    timelapseTimeout = null
-  } else {
-    playTimelapseButton.textContent = "Stop"
-    timelapseTimeout = setInterval(() => {
-      timelapseFrame++
-      renderTimelapseFrame(timelapseFrame)
-    }, 100)
-  }
+  toggleTimelapse();
 })
 
 const backgroundMapCheckbox: HTMLInputElement = document.querySelector("#backgroundMap")!
@@ -266,7 +281,43 @@ const map = new Map({
   zoom: 5
 });
 
-const API_URL = "http://localhost:3333"
+const API_URL = "https://tvis-api-dev.hekinav.dev"
+
+function toggleTimelapse() {
+  if (timelapseTimeout) {
+    playTimelapseButton.textContent = "Play";
+    clearInterval(timelapseTimeout);
+    timelapseTimeout = null;
+  } else {
+    playTimelapseButton.textContent = "Stop";
+    timelapseTimeout = setInterval(() => {
+      timelapseFrame++;
+      renderTimelapseFrame(timelapseFrame);
+    }, 100 / timelapseSpeedMultiplier);
+  }
+}
+
+function onOpacity(): (this: HTMLInputElement, ev: Event) => any {
+  return () => {
+    map?.setPaintProperty("lines", "line-opacity", Number(opacity.value) / 100);
+    map?.setPaintProperty("points", "circle-opacity", Number(opacity.value) / 100);
+    opacityLabel.textContent = `${opacity.value}%`;
+  };
+}
+
+function onTimelapseSpeed(): (this: HTMLInputElement, ev: Event) => any {
+  return () => {
+   timelapseSpeedMultiplier = Number(timelapseSpeed.value)
+   timelapseSpeedLabel.textContent = `${timelapseSpeed.value}x`;
+   if (timelapseTimeout) {
+    clearInterval(timelapseTimeout)
+    timelapseTimeout = setInterval(() => {
+      timelapseFrame++;
+      renderTimelapseFrame(timelapseFrame);
+    }, 100 / timelapseSpeedMultiplier);
+   }
+  };
+}
 
 async function start() {
   map.addSource("lines", {
@@ -283,7 +334,7 @@ async function start() {
     paint: {
       "line-color": "#fff",
       "line-width": 1,
-      "line-opacity": 0.01
+      "line-opacity": 0.5
     }
   })
   map.addSource("points", {
@@ -299,11 +350,14 @@ async function start() {
     type: "circle",
     paint: {
       "circle-color": "#fff",
-      "circle-radius": 2
+      "circle-radius": 2,
+      "circle-opacity": 0.5
     }
   })
   loadDatePicker()
   loadColorPickers()
+  onOpacity()
+  onTimelapseSpeed()
 
   if (localStorage.getItem("selectedStations")) {
     try {
@@ -396,12 +450,25 @@ function loadColorPickers() {
   reloadMapColours()
 }
 
+const DAY = 24 * 60 * 60 * 1000
+
 async function loadMap() {
 
+  const progressToast = Toastify({
+    text: "Loading trips. This will take some time. Please wait.",
+    duration: 100000000_000,
+    gravity: "top",
+    position: "right",
+    ...toastConfig,
+  })
+  progressToast.showToast()
+
+  if (timelapseTimeout) toggleTimelapse()
+
   let dateRange: string | null = null
-  const dates = picker.selectedDates.map(e => `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}`)
-  if (dates.length == 1) dateRange = `${dates[0]}:${dates[0]}`
-  if (dates.length > 1) dateRange = `${dates[0]}:${dates[1]}`
+  const formatDate = (e: Date) => `${e.getFullYear()}-${String(e.getMonth() + 1).padStart(2, "0")}-${String(e.getDate()).padStart(2, "0")}`
+  if (picker.selectedDates.length == 1) dateRange = `${formatDate(new Date(picker.selectedDates[0].getTime() - DAY))}:${formatDate(picker.selectedDates[0])}`
+  if (picker.selectedDates.length > 1) dateRange = `${formatDate(new Date(picker.selectedDates[0].getTime() - DAY))}:${formatDate(picker.selectedDates[1])}`
 
   const dataSources = dataSourcePicker.getSelected()
   const routeTypes = routeTypePicker.getSelected()
@@ -412,6 +479,7 @@ async function loadMap() {
       type: "FeatureCollection",
       features: []
     })
+    progressToast.hideToast()
     Toastify({
       text: "No data for the selected filters. Try to add a data source and routeType",
       duration: 3000,
@@ -422,8 +490,44 @@ async function loadMap() {
     return
   }
   try {
+
     const response = await fetch(API_URL + `/api/v1/trips?messages&departureDateRange=${dateRange}&dataSource=${dataSources.join(",")}&routeType=${routeTypes.join(",")}&terminus=${terminuses.join(",")}`)
-    const json: APIResponse<APITrip[]> = await response.json()
+    if (!response.ok || !response.body) {
+      throw new Error(`Request failed: ${response.status} ${response.statusText}`)
+    }
+
+    const total = Number(response.headers.get("x-uncompressed-length")) || 0
+
+    const reader = response.body.getReader()
+    const chunks: Uint8Array[] = []
+    let received = 0
+    let nextPercent = 1
+
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      chunks.push(value)
+      received += value.length
+
+      const percent = (received / total) * 100
+      if (percent >= nextPercent) {
+        progressToast.toastElement!.textContent = `Downloaded ${Math.floor(percent)}% (${toMB(received)} / ${toMB(total)} MB)`
+        nextPercent = percent + 1
+      }
+    }
+
+    progressToast.toastElement!.textContent = `Download complete. Processing...`
+
+    const body = new Uint8Array(received)
+    let offset = 0
+    for (const chunk of chunks) {
+      body.set(chunk, offset)
+      offset += chunk.length
+    }
+    chunks.length = 0
+
+    const json: APIResponse<APITrip[]> = JSON.parse(new TextDecoder().decode(body))
 
 
     if (!json.success) {
@@ -443,7 +547,12 @@ async function loadMap() {
 
     reloadMapColours()
 
-    trips = json.data
+    trips = json.data.reduce((p,c) => {
+      const startTime = picker.selectedDates[0]
+      const filteredMessages = c.messages!.filter(msg => new Date(msg.timestamp).getTime() >= startTime.getTime())
+      if (filteredMessages.length == 0) return p
+      return [...p, {...c, messages: filteredMessages}]
+    }, new Array<APITrip>())
 
     generateTimelapse()
 
@@ -457,7 +566,7 @@ async function loadMap() {
     fitMap()
 
 
-
+    progressToast.hideToast()
 
     Toastify({
       text: `Loaded ${json.data.length} trips`,
@@ -475,6 +584,10 @@ async function loadMap() {
       ...toastConfig,
     }).showToast()
   }
+}
+
+function toMB(bytes: number) {
+  return (bytes / 1024 / 1024).toFixed(1)
 }
 
 function drawTrips() {
@@ -517,7 +630,6 @@ function generateTimelapse() {
     (trip.messages ?? []).map(m => Temporal.Instant.from(m.timestamp).epochMilliseconds)
   )
 
-  const DAY = 24 * 60 * 60 * 1000
   const t0 = picker.selectedDates[0].getTime()
   const t1 = (picker.selectedDates[1] || picker.selectedDates[0]).getTime() + DAY
   const frameCount = Math.ceil((t1 - t0) / timelapseFrameDuration)
@@ -533,20 +645,25 @@ function generateTimelapse() {
       const times = tripTimes[t]
       if (!trip.messages || times.length === 0) continue
 
-      // filter out if trip is outside frame
       if (times[0] >= end || times[times.length - 1] < start) continue
 
       const first = lowerBound(times, start)
-      const last = lowerBound(times, end) - 1
-      if (first >= last) continue
+      const endIdx = lowerBound(times, end)
 
-      frameTrips.push({
-        ...trip,
-        messages: trip.messages.slice(first, last + 1),
-      })
+      let messages: typeof trip.messages
+      if (first < endIdx) {
+        // trip is active (messages in frame)
+        messages = trip.messages.slice(first, endIdx)
+      } else {
+        // trip is inactive, but not ended
+        messages = trip.messages.slice(first - 1, first)
+      }
+
+      frameTrips.push({ ...trip, messages })
     }
     timelapseData.push(frameTrips)
   }
+  totalFrames.textContent = timelapseData.length.toString()
 }
 
 function lowerBound(times: number[], target: number) {
@@ -560,6 +677,11 @@ function lowerBound(times: number[], target: number) {
 }
 
 function renderTimelapseFrame(frame: number) {
+
+  currentFrame.textContent = timelapseFrame.toString();
+  const date = Temporal.Instant.fromEpochMilliseconds(picker.selectedDates[0].getTime() + frame * timelapseFrameDuration).toZonedDateTimeISO("Europe/Helsinki")
+  time.textContent = `${date.day}.${date.month}.${date.year} ${date.hour.toString().padStart(2, "0")}:${date.minute.toString().padStart(2, "0")}`;
+
   (map.getSource("lines") as GeoJSONSource).setData({
     type: "FeatureCollection",
     features: [

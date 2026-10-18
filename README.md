@@ -2,6 +2,8 @@
 
 The project consists of a backend and frontend in the same repo.
 
+[https://tvis.hekinav.dev](https://tvis.hekinav.dev/)
+
 # Backend
 
 The backend is a node.js typescript server which takes in data from [Digitraffic MQTT](https://www.digitraffic.fi/rautatieliikenne/#websocket-mqtt) and stores it in a postgres database. The data can be accessed via a public REST API using Express.js
@@ -122,3 +124,4 @@ All commands should be executed in the `/frontend` directory
 2. Start dev server `npm run dev`
 3. Build production version `npm run build`
 4. Test production version locally `npm run preview`
+5. Deploy to cloudflare workers `npm run deploy`

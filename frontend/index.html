@@ -54,12 +54,17 @@
         <label for="backgroundMap" class="text-nowrap grow-1 text-lg text-neutral-200">Background map</label>
       </div>
       <div class="w-full flex justify-start gap-4 items-center">
-        <input type="checkbox" name="" id="routeTypeColors" class=" accent-cyan-500">
+        <input type="checkbox" name="" id="routeTypeColors" class=" accent-cyan-500" autocomplete="off">
         <label for="routeTypeColors" class="text-nowrap grow-1 text-lg text-neutral-200">Color by route type</label>
       </div>
       <h2 class="text-xl text-cyan-500 my-2">Colors</h2>
       <div id="colors">
 
+      </div>
+      <div class="w-full flex justify-start gap-4 items-center">
+        <span class="text-neutral-200" id="opacityLabel">50%</span>
+        <input type="range" min="1" max="100" id="opacity" class=" accent-cyan-500" value="50" autocomplete="off">
+        <label for="opacity" class="text-nowrap grow-1 text-lg text-neutral-200">Route opacity</label>
       </div>
       <button id="resetColors"
         class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Reset
@@ -71,9 +76,17 @@
       <div id="timelapse" hidden>
         <button id="playTimelapse"
           class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Play</button>
+          <div class="w-full flex justify-start gap-4 items-center">
+            <span class="text-neutral-200" id="timelapseSpeedLabel">1x</span>
+            <input type="range" min="0.5" max="3" step="0.5" id="timelapseSpeed" class=" accent-cyan-500" value="1" autocomplete="off">
+            <label for="timelapseSpeed" class="text-nowrap grow-1 text-lg text-neutral-200">Timelapse speed</label>
+          </div>
+          <p class="text-neutral-200">Frame <span id="currentFrame">0</span>/<span id="totalFrames">100</span></p>
       </div>
     </div>
-    <div id="map" class="h-full shrink"></div>
+    <div id="map" class="h-full shrink">
+      <div class="p-4 absolute top-0 left-0 z-1000 text-2xl text-neutral-200" id="time"></div>
+    </div>
   </div>
   <script type="module" src="/src/main.ts"></script>
 </body>

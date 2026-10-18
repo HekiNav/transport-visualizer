@@ -1,7 +1,7 @@
 import mqtt from "mqtt"
 import { db, type Tx } from "./prisma/db"
 import { and, or, type CollectionRowOf } from "@prisma/orm-postgres/orm-client";
-import express from "express"
+import express, { type NextFunction, type Request, type Response } from "express"
 import rateLimit from "express-rate-limit";
 import z, { success } from "zod";
 import cors from "cors"
@@ -99,6 +99,19 @@ const nextBatch: Buffer[] = []
 
 const seenTrips = new Map<string, { trip: Trip, lastPos: LatLng, lastTime: Temporal.ZonedDateTime }>()
 
+export function uncompressedLength(req: Request, res: Response, next: NextFunction) {
+  const send = res.send.bind(res)
+
+  res.send = (body?: any) => {
+    if (!res.headersSent && !res.getHeader("X-Uncompressed-Length")) {
+      const len = typeof body === "string" ? Buffer.byteLength(body) : Buffer.isBuffer(body) ? body.length : undefined
+      if (len !== undefined) res.set("X-Uncompressed-Length", String(len))
+    }
+    return send(body)
+  }
+
+  next()
+}
 
 start()
 
@@ -130,12 +143,16 @@ async function start() {
 
   const app = express()
 
+  app.use(uncompressedLength)
+
   const limiter = rateLimit({
     limit: Number(process.env.RATE_LIMIT_AMOUNT),
     windowMs: Number(process.env.RATE_LIMIT_MINUTES) * 60_000,
     message: { code: 429, message: `Requests are rate limited to ${process.env.RATE_LIMIT_AMOUNT} in a ${process.env.RATE_LIMIT_MINUTES} minute period`, success: false }
   })
-  app.use(cors())
+  app.use(cors({
+    exposedHeaders: ["X-Uncompressed-Length"],
+  }))
   app.use(limiter)
 
   app.listen(process.env.API_PORT, () => {
@@ -276,7 +293,7 @@ export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: Di
 
     // This should never happen
     if (!seen) return
-    
+
     const distance = haversineDistance(seen.lastPos, msgPos)
 
     // skip event if its been less than 15 seconds or the vehicle has moved less than 10m
