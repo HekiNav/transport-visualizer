@@ -106,7 +106,7 @@ async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTraff
     if (Temporal.Duration.compare(now.since(seen.lastTime).abs(), Temporal.Duration.from({ seconds: 15 })) == -1) {
       //console.log(`Skipping ${seen.trip.route} due to time: ${now.since(seen.lastTime).toString()}`)
       stats.tooSoon++
-    } else if (distance < 0.01 || (distance > 10 && seen.lastPos.lat != 0)) {
+    } else if (distance < 0.01 || (distance > 20 && seen.lastPos.lat != 0)) {
       //console.log(`Skipping ${seen.trip.route} due to distance`)
       stats.tooClose++
       seenTrips.set(tripId, { trip: seen.trip, lastPos: msgPos, lastTime: seen.lastTime })
@@ -285,7 +285,7 @@ async function GraphQl(query: string, url: string, variables: { [key: string]: a
 
 const BATCH_SIZE = 5000;
 
-const allDigitrafficTrainDetails = (await GraphQl(digitrafficAllTrainDetailsQuery, process.env.DIGITRAFFIC_GRAPHQL || "https://rata.digitraffic.fi/api/v2/graphql/graphql", { depDate: "2026-10-01" }, JSON.parse(process.env.DIGITRAFFIC_HEADERS || "{}") || {}))?.data?.trainsByDepartureDate
+const allDigitrafficTrainDetails = (await GraphQl(digitrafficAllTrainDetailsQuery, process.env.DIGITRAFFIC_GRAPHQL || "https://rata.digitraffic.fi/api/v2/graphql/graphql", { depDate: "2026-10-14" }, JSON.parse(process.env.DIGITRAFFIC_HEADERS || "{}") || {}))?.data?.trainsByDepartureDate
 
 
 async function flush(batch: any[]) {
@@ -302,7 +302,7 @@ async function flush(batch: any[]) {
 
 async function importData() {
     const pipeline = chain([
-        fs.createReadStream('src/train-locations-2026-10-01.json'),
+        fs.createReadStream('src/train-locations-2026-10-14.json'),
         parser(),
         streamArray(),
     ]);

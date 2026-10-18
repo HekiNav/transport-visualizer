@@ -14,6 +14,14 @@ The backend is a node.js typescript server which takes in data from [Digitraffic
 4. **Start production server**: `npm run build & npm run pm2:start`. 
 5. **Stop production server**: `npm run pm2:stop`. 
 
+## Bulk importing data
+
+`src/data/import.ts` is a script to bulk import all events from one day to the database. The archived GPS positions can be found at [the Digitraffic Archive](https://rata.digitraffic.fi/api/v1/train-locations/dumps/list.html).
+
+To use the script, you need to manually set the date and filename in the import.ts file. (rows 288 and 305)
+
+Execute the script with tsx and wait for the import to complete. It usually takes around 4 minutes (~5 million gps events).
+
 
 ## API Definition
 

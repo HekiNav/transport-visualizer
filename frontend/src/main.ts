@@ -115,6 +115,14 @@ let selectedColors = { ...defaultColors }
 let selectedColor = ColorSwatch.CYAN
 let lastColorReload = 0
 
+let timelapse = false
+let timelapseFrameDuration = 60_000
+let timelapseTailLength = 10
+let trips: APITrip[] = []
+let timelapseData: APITrip[][] = []
+let timelapseFrame: number = 0
+let timelapseTimeout: number | null = null
+
 Coloris.init();
 
 Split(['#content', '#map'], {
@@ -141,6 +149,38 @@ resetColorsButton.addEventListener("click", () => {
   selectedColors = { ...defaultColors }
   selectedColor = ColorSwatch.CYAN
   loadColorPickers()
+})
+
+const toggleTimelapseButton: HTMLButtonElement = document.querySelector("#toggleTimelapse")!
+const timelapseContainer: HTMLButtonElement = document.querySelector("#timelapse")!
+
+toggleTimelapseButton.addEventListener("click", () => {
+  timelapse = !timelapse
+  timelapseContainer.hidden = !timelapse
+  toggleTimelapseButton.textContent = timelapse ? "Switch to normal mode" : "Switch to timelapse"
+  map?.setPaintProperty("lines", "line-opacity", timelapse ? 1 : 0.01)
+  if (timelapse) {
+    renderTimelapseFrame(timelapseFrame)
+  } else {
+    drawTrips()
+  }
+})
+
+const playTimelapseButton: HTMLButtonElement = document.querySelector("#playTimelapse")!
+
+playTimelapseButton.addEventListener("click", () => {
+  if (!timelapse) return
+  if (timelapseTimeout) {
+    playTimelapseButton.textContent = "Play"
+    clearInterval(timelapseTimeout)
+    timelapseTimeout = null
+  } else {
+    playTimelapseButton.textContent = "Stop"
+    timelapseTimeout = setInterval(() => {
+      timelapseFrame++
+      renderTimelapseFrame(timelapseFrame)
+    }, 100)
+  }
 })
 
 const backgroundMapCheckbox: HTMLInputElement = document.querySelector("#backgroundMap")!
@@ -246,6 +286,22 @@ async function start() {
       "line-opacity": 0.01
     }
   })
+  map.addSource("points", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: []
+    }
+  })
+  map.addLayer({
+    id: "points",
+    source: "points",
+    type: "circle",
+    paint: {
+      "circle-color": "#fff",
+      "circle-radius": 2
+    }
+  })
   loadDatePicker()
   loadColorPickers()
 
@@ -293,8 +349,10 @@ function reloadMapColours() {
     if (lastTime != lastColorReload) return
     if (colorsByRoutetypeCheckbox.checked) {
       map?.setPaintProperty("lines", "line-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
+      map?.setPaintProperty("points", "circle-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
     } else {
       map?.setPaintProperty("lines", "line-color", selectedColor)
+      map?.setPaintProperty("points", "circle-color", selectedColor)
     }
   }, 100)
 }
@@ -383,30 +441,23 @@ async function loadMap() {
       return
     }
 
-    const bounds = (json.data[0] && json.data[0].messages && json.data[0].messages?.length > 1) ? new LngLatBounds(json.data[0].messages![0], json.data[0].messages![1]) : null
-
-    const polylines: GeoJSON.Feature<GeoJSON.LineString, APITrip>[] = json.data.map(({ messages, ...trip }) => {
-      if (bounds) messages?.forEach(msg => bounds.extend(msg))
-      return {
-        type: "Feature",
-        geometry: {
-          type: "LineString",
-          coordinates: (messages || []).map(msg => [msg.lng, msg.lat])
-        },
-        properties: trip
-      }
-    });
-    (map.getSource("lines") as GeoJSONSource).setData({
-      type: "FeatureCollection",
-      features: polylines
-    })
-    if (bounds) map.fitBounds(bounds, {
-      padding: 100,
-      essential: true,
-      duration: 1000
-    })
-
     reloadMapColours()
+
+    trips = json.data
+
+    generateTimelapse()
+
+
+    if (timelapse) {
+      timelapseFrame = 0
+      renderTimelapseFrame(timelapseFrame)
+    } else {
+      drawTrips()
+    }
+    fitMap()
+
+
+
 
     Toastify({
       text: `Loaded ${json.data.length} trips`,
@@ -424,6 +475,125 @@ async function loadMap() {
       ...toastConfig,
     }).showToast()
   }
+}
+
+function drawTrips() {
+  const polylines: GeoJSON.Feature<GeoJSON.LineString, APITrip>[] = trips.map(({ messages, ...trip }) => {
+    return {
+      type: "Feature",
+      geometry: {
+        type: "LineString",
+        coordinates: (messages || []).map(msg => [msg.lng, msg.lat])
+      },
+      properties: { ...trip }
+    };
+  });
+  (map.getSource("lines") as GeoJSONSource).setData({
+    type: "FeatureCollection",
+    features: polylines
+  });
+  (map.getSource("points") as GeoJSONSource).setData({
+    type: "FeatureCollection",
+    features: []
+  });
+}
+
+function fitMap() {
+  const bounds = (trips[0] && trips[0].messages && trips[0].messages?.length > 1) ? new LngLatBounds(trips[0].messages![0], trips[0].messages![1]) : null;
+  trips.forEach(({ messages }) => {
+    if (bounds) messages?.forEach(msg => bounds.extend(msg));
+  })
+  if (bounds) map.fitBounds(bounds, {
+    padding: 100,
+    essential: true,
+    duration: 1000
+  });
+}
+
+function generateTimelapse() {
+  timelapseData = []
+
+  const tripTimes = trips.map(trip =>
+    (trip.messages ?? []).map(m => Temporal.Instant.from(m.timestamp).epochMilliseconds)
+  )
+
+  const DAY = 24 * 60 * 60 * 1000
+  const t0 = picker.selectedDates[0].getTime()
+  const t1 = (picker.selectedDates[1] || picker.selectedDates[0]).getTime() + DAY
+  const frameCount = Math.ceil((t1 - t0) / timelapseFrameDuration)
+
+  for (let i = 0; i < frameCount; i++) {
+    const start = t0 + i * timelapseFrameDuration
+    const end = start + timelapseFrameDuration
+
+    const frameTrips: APITrip[] = []
+
+    for (let t = 0; t < trips.length; t++) {
+      const trip = trips[t]
+      const times = tripTimes[t]
+      if (!trip.messages || times.length === 0) continue
+
+      // filter out if trip is outside frame
+      if (times[0] >= end || times[times.length - 1] < start) continue
+
+      const first = lowerBound(times, start)
+      const last = lowerBound(times, end) - 1
+      if (first >= last) continue
+
+      frameTrips.push({
+        ...trip,
+        messages: trip.messages.slice(first, last + 1),
+      })
+    }
+    timelapseData.push(frameTrips)
+  }
+}
+
+function lowerBound(times: number[], target: number) {
+  let lo = 0, hi = times.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (times[mid] < target) lo = mid + 1
+    else hi = mid
+  }
+  return lo
+}
+
+function renderTimelapseFrame(frame: number) {
+  (map.getSource("lines") as GeoJSONSource).setData({
+    type: "FeatureCollection",
+    features: [
+      ...timelapseData[frame].map<GeoJSON.Feature<GeoJSON.LineString, APITrip>>(trip => {
+        const line: number[][] = []
+        for (let i = Math.max(0, frame - timelapseTailLength); i < frame; i++) {
+          const prevTrip = timelapseData[i].find(t => t.tripId == trip.tripId)
+          if (prevTrip) line.push(...prevTrip.messages!.map(msg => ([msg.lng, msg.lat])))
+        }
+        line.push(...trip.messages!.map(msg => ([msg.lng, msg.lat])))
+        return {
+          type: "Feature" as const,
+          geometry: {
+            type: "LineString",
+            coordinates: line
+          },
+          properties: trip
+        }
+      })
+    ]
+  });
+  (map.getSource("points") as GeoJSONSource).setData({
+    type: "FeatureCollection",
+    features: [
+      ...timelapseData[frame].map<GeoJSON.Feature<GeoJSON.Point, APITrip>>(trip => ({
+        type: "Feature" as const,
+        geometry: {
+          type: "Point",
+          coordinates: [trip.messages![trip.messages!.length - 1].lng, trip.messages![trip.messages!.length - 1].lat]
+        },
+        properties: trip
+      }))
+    ]
+  });
 }
 
 async function loadDatePicker(dataSources: string[] = []) {

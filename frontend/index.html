@@ -46,23 +46,32 @@
         <select id="terminus" multiple>
         </select>
       </div>
-      <button id="load" class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Load</button>
+      <button id="load"
+        class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Load</button>
       <h2 class="text-2xl text-cyan-500 my-4">Edit style</h2>
       <div class="w-full flex justify-start gap-4 items-center">
         <input type="checkbox" checked name="" id="backgroundMap" class=" accent-cyan-500" autocomplete="off">
         <label for="backgroundMap" class="text-nowrap grow-1 text-lg text-neutral-200">Background map</label>
       </div>
       <div class="w-full flex justify-start gap-4 items-center">
-        <input type="checkbox" checked name="" id="routeTypeColors" class=" accent-cyan-500" autocomplete="off">
+        <input type="checkbox" name="" id="routeTypeColors" class=" accent-cyan-500">
         <label for="routeTypeColors" class="text-nowrap grow-1 text-lg text-neutral-200">Color by route type</label>
       </div>
       <h2 class="text-xl text-cyan-500 my-2">Colors</h2>
       <div id="colors">
-        
-      </div>
-      <button id="resetColors" class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Reset colors</button>
-      <h2 class="text-2xl text-cyan-500 my-4">View timelapse</h2>
 
+      </div>
+      <button id="resetColors"
+        class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Reset
+        colors</button>
+      <h2 class="text-2xl text-cyan-500 my-4">View timelapse</h2>
+      <button id="toggleTimelapse"
+        class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Switch
+        to timelapse</button>
+      <div id="timelapse" hidden>
+        <button id="playTimelapse"
+          class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Play</button>
+      </div>
     </div>
     <div id="map" class="h-full shrink"></div>
   </div>
