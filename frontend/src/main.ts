@@ -13,6 +13,13 @@ import './style.css'
 import "toastify-js/src/toastify.css"
 import "@melloware/coloris/dist/coloris.css";
 
+
+/// █████ █   █ ████  █████  ████
+///   █    █ █  █   █ █     █
+///   █     █   ████  ████   ███
+///   █     █   █     █         █
+///   █     █   █     █████ ████
+
 // API Types
 type APIMessage = {
   lat: number;
@@ -60,6 +67,13 @@ type DigitrafficStation = {
   stationUICCode: number,
   type: "STATION" | "STOPPING_POINT" | "TURNOUT_IN_THE_OPEN_LINE"
 }
+
+///  ████  ███  █   █  ████ █████  ███  █   █ █████  ████
+/// █     █   █ ██  █ █       █   █   █ ██  █   █   █
+/// █     █   █ █ █ █  ███    █   █████ █ █ █   █    ███
+/// █     █   █ █  ██     █   █   █   █ █  ██   █       █
+///  ████  ███  █   █ ████    █   █   █ █   █   █   ████
+
 
 const toastConfig = {
   className: "border-neutral-200 border-2 p-1 rounded-lg! text-neutral-200 accent-cyan-500 text-xl bg-neutral-900! p-2!",
@@ -110,7 +124,16 @@ const defaultColors: { [t in APIRouteType]: string } = {
   TRAIN_OTHER: ColorSwatch.PINK,
 }
 
+const API_URL = "https://tvis-api-dev.hekinav.dev"
+const DAY = 24 * 60 * 60 * 1000
 
+
+
+/// █   █  ███  ████  █████  ███  ████  █     █████  ████
+/// █   █ █   █ █   █   █   █   █ █   █ █     █     █
+/// █   █ █████ ████    █   █████ ████  █     ████   ███
+///  █ █  █   █ █  █    █   █   █ █   █ █     █         █
+///   █   █   █ █   █ █████ █   █ ████  █████ █████ ████
 
 let selectedColors = { ...defaultColors }
 let selectedColor = ColorSwatch.CYAN
@@ -126,9 +149,15 @@ let timelapseFrame: number = 0
 let timelapseTimeout: number | null = null
 
 
+///  ████ █████ █████ █   █ ████
+/// █     █       █   █   █ █   █
+///  ███  ████    █   █   █ ████
+///     █ █       █   █   █ █
+/// ████  █████   █    ███  █
 
 setWorkerUrl(workerUrl);
 
+// HTML Elements
 
 Coloris.init();
 
@@ -274,6 +303,8 @@ const terminusPicker = new SlimSelect({
   }
 })
 
+/// Map
+
 const map = new Map({
   container: 'map',
   style: "./map_style.json",
@@ -281,44 +312,24 @@ const map = new Map({
   zoom: 5
 });
 
-const API_URL = "https://tvis-api-dev.hekinav.dev"
+/// █████ █   █ █   █  ████ █████ █████  ███  █   █  ████
+/// █     █   █ ██  █ █       █     █   █   █ ██  █ █
+/// ████  █   █ █ █ █ █       █     █   █   █ █ █ █  ███
+/// █     █   █ █  ██ █       █     █   █   █ █  ██     █
+/// █      ███  █   █  ████   █   █████  ███  █   █ ████
 
-function toggleTimelapse() {
-  if (timelapseTimeout) {
-    playTimelapseButton.textContent = "Play";
-    clearInterval(timelapseTimeout);
-    timelapseTimeout = null;
-  } else {
-    playTimelapseButton.textContent = "Stop";
-    timelapseTimeout = setInterval(() => {
-      timelapseFrame++;
-      renderTimelapseFrame(timelapseFrame);
-      if (timelapseFrame >= timelapseData.length -1) {
-        playTimelapseButton.textContent = "Play";
-        clearInterval(timelapseTimeout || undefined);
-        timelapseTimeout = null;
-      }
-    }, 100 / timelapseSpeedMultiplier);
+function toMB(bytes: number) {
+  return (bytes / 1024 / 1024).toFixed(1)
+}
+
+function lowerBound(times: number[], target: number) {
+  let lo = 0, hi = times.length
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1
+    if (times[mid] < target) lo = mid + 1
+    else hi = mid
   }
-}
-
-function onOpacity(): (this: HTMLInputElement, ev: Event) => any {
-  return () => {
-    map?.setPaintProperty("lines", "line-opacity", Number(opacity.value) / 100);
-    map?.setPaintProperty("points", "circle-opacity", Number(opacity.value) / 100);
-    opacityLabel.textContent = `${opacity.value}%`;
-  };
-}
-
-function onTimelapseSpeed(): (this: HTMLInputElement, ev: Event) => any {
-  return () => {
-    timelapseSpeedMultiplier = Number(timelapseSpeed.value)
-    timelapseSpeedLabel.textContent = `${timelapseSpeed.value}x`;
-    if (timelapseTimeout) {
-      toggleTimelapse()
-      toggleTimelapse()        
-    }
-  };
+  return lo
 }
 
 async function start() {
@@ -398,19 +409,48 @@ function getStoredStationList() {
   }
 }
 
-function reloadMapColours() {
-  lastColorReload = Date.now()
-  let lastTime = lastColorReload
-  setTimeout(() => {
-    if (lastTime != lastColorReload) return
-    if (colorsByRoutetypeCheckbox.checked) {
-      map?.setPaintProperty("lines", "line-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
-      map?.setPaintProperty("points", "circle-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
-    } else {
-      map?.setPaintProperty("lines", "line-color", selectedColor)
-      map?.setPaintProperty("points", "circle-color", selectedColor)
+///       █   █ █████ █   █ █
+///       █   █   █   ██ ██ █
+/// █████ █████   █   █ █ █ █
+///       █   █   █   █   █ █
+///       █   █   █   █   █ █████
+
+function toggleTimelapse() {
+  if (timelapseTimeout) {
+    playTimelapseButton.textContent = "Play";
+    clearInterval(timelapseTimeout);
+    timelapseTimeout = null;
+  } else {
+    playTimelapseButton.textContent = "Stop";
+    timelapseTimeout = setInterval(() => {
+      timelapseFrame++;
+      renderTimelapseFrame(timelapseFrame);
+      if (timelapseFrame >= timelapseData.length -1) {
+        playTimelapseButton.textContent = "Play";
+        clearInterval(timelapseTimeout || undefined);
+        timelapseTimeout = null;
+      }
+    }, 100 / timelapseSpeedMultiplier);
+  }
+}
+
+function onOpacity(): (this: HTMLInputElement, ev: Event) => any {
+  return () => {
+    map?.setPaintProperty("lines", "line-opacity", Number(opacity.value) / 100);
+    map?.setPaintProperty("points", "circle-opacity", Number(opacity.value) / 100);
+    opacityLabel.textContent = `${opacity.value}%`;
+  };
+}
+
+function onTimelapseSpeed(): (this: HTMLInputElement, ev: Event) => any {
+  return () => {
+    timelapseSpeedMultiplier = Number(timelapseSpeed.value)
+    timelapseSpeedLabel.textContent = `${timelapseSpeed.value}x`;
+    if (timelapseTimeout) {
+      toggleTimelapse()
+      toggleTimelapse()        
     }
-  }, 100)
+  };
 }
 
 function loadColorPickers() {
@@ -452,7 +492,39 @@ function loadColorPickers() {
   reloadMapColours()
 }
 
-const DAY = 24 * 60 * 60 * 1000
+async function loadDatePicker(dataSources: string[] = []) {
+  const response = await fetch(API_URL + `/api/v1/dates?dataSource=${dataSources.join(",")}`)
+  const json: APIResponse<APITrip[]> = await response.json()
+  if (!json.success) {
+    console.error(json.message)
+    return
+  }
+  picker.set("minDate", json.data[0])
+  picker.set("maxDate", json.data[json.data.length - 1])
+  //loadMap()
+}
+
+///       █   █  ███  ████
+///       ██ ██ █   █ █   █
+/// █████ █ █ █ █████ ████
+///       █   █ █   █ █
+///       █   █ █   █ █
+
+function reloadMapColours() {
+  lastColorReload = Date.now()
+  let lastTime = lastColorReload
+  setTimeout(() => {
+    if (lastTime != lastColorReload) return
+    if (colorsByRoutetypeCheckbox.checked) {
+      map?.setPaintProperty("lines", "line-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
+      map?.setPaintProperty("points", "circle-color", ["match", ["get", "routeType"], ...Object.entries(selectedColors).flat() as [string, string, ...string[]], "#fff"])
+    } else {
+      map?.setPaintProperty("lines", "line-color", selectedColor)
+      map?.setPaintProperty("points", "circle-color", selectedColor)
+    }
+  }, 100)
+}
+
 
 async function loadMap() {
 
@@ -588,10 +660,6 @@ async function loadMap() {
   }
 }
 
-function toMB(bytes: number) {
-  return (bytes / 1024 / 1024).toFixed(1)
-}
-
 function drawTrips() {
   const polylines: GeoJSON.Feature<GeoJSON.LineString, APITrip>[] = trips.map(({ messages, ...trip }) => {
     return {
@@ -624,6 +692,12 @@ function fitMap() {
     duration: 1000
   });
 }
+
+///       █████ █████ █   █ █████ █      ███  ████   ████ █████
+///         █     █   ██ ██ █     █     █   █ █   █ █     █
+/// █████   █     █   █ █ █ ████  █     █████ ████   ███  ████
+///         █     █   █   █ █     █     █   █ █         █ █
+///         █   █████ █   █ █████ █████ █   █ █     ████  █████
 
 function generateTimelapse() {
   timelapseData = []
@@ -668,16 +742,6 @@ function generateTimelapse() {
   totalFrames.textContent = timelapseData.length.toString()
 }
 
-function lowerBound(times: number[], target: number) {
-  let lo = 0, hi = times.length
-  while (lo < hi) {
-    const mid = (lo + hi) >> 1
-    if (times[mid] < target) lo = mid + 1
-    else hi = mid
-  }
-  return lo
-}
-
 function renderTimelapseFrame(frame: number) {
 
   currentFrame.textContent = (timelapseFrame+1).toString();
@@ -718,18 +782,6 @@ function renderTimelapseFrame(frame: number) {
       }))
     ]
   });
-}
-
-async function loadDatePicker(dataSources: string[] = []) {
-  const response = await fetch(API_URL + `/api/v1/dates?dataSource=${dataSources.join(",")}`)
-  const json: APIResponse<APITrip[]> = await response.json()
-  if (!json.success) {
-    console.error(json.message)
-    return
-  }
-  picker.set("minDate", json.data[0])
-  picker.set("maxDate", json.data[json.data.length - 1])
-  //loadMap()
 }
 
 map.once("style.load", start)

@@ -16,6 +16,8 @@
     "vite": "^8.3.0"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@melloware/coloris": "^0.25.0",
     "@tailwindcss/vite": "^4.3.3",
     "flatpickr": "^4.6.13",

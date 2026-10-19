@@ -74,15 +74,34 @@
         class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Switch
         to timelapse</button>
       <div id="timelapse" hidden>
+        <div class="w-full flex justify-start gap-4 items-center">
+          <span class="text-neutral-200" id="timelapseSpeedLabel">1x</span>
+          <input type="range" min="0.5" max="3" step="0.5" id="timelapseSpeed" class=" accent-cyan-500" value="1"
+            autocomplete="off">
+          <label for="timelapseSpeed" class="text-nowrap grow-1 text-lg text-neutral-200">Timelapse speed</label>
+        </div>
+        <p class="text-neutral-200">Frame <span id="currentFrame">0</span>/<span id="totalFrames">100</span></p>
+        
         <button id="playTimelapse"
           class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Play</button>
-          <div class="w-full flex justify-start gap-4 items-center">
-            <span class="text-neutral-200" id="timelapseSpeedLabel">1x</span>
-            <input type="range" min="0.5" max="3" step="0.5" id="timelapseSpeed" class=" accent-cyan-500" value="1" autocomplete="off">
-            <label for="timelapseSpeed" class="text-nowrap grow-1 text-lg text-neutral-200">Timelapse speed</label>
-          </div>
-          <p class="text-neutral-200">Frame <span id="currentFrame">0</span>/<span id="totalFrames">100</span></p>
+      <h2 class="text-2xl text-cyan-500 my-4">Export video</h2>
+      <select id="exportResolution">
+          <option value="480P_H">480P (Horizontal)</option>
+          <option value="480P_V">480P (Vertical)</option>
+          <option value="720P_H">HD 720P (Horizontal)</option>
+          <option value="720P_V">HD 720P (Vertical)</option>
+          <option value="1080P_H">Full HD 1080P (Horizontal)</option>
+          <option value="1080P_V">Full HD 1080P (Vertical)</option>
+          <option value="1440P_H">2K 1440P (Horizontal)</option>
+          <option value="1440P_V">2K 1440P (Vertical)</option>
+          <option value="2160P_H">4K 2160P (Horizontal)</option>
+          <option value="2160P_V">4K 2160P (Vertical)</option>
+        </select>
+      <button id="export"
+          class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Export</button>
+      
       </div>
+
     </div>
     <div id="map" class="h-full shrink">
       <div class="p-4 absolute top-0 left-0 z-1000 text-2xl text-neutral-200" id="time"></div>
