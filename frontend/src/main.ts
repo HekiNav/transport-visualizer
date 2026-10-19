@@ -303,6 +303,20 @@ const terminusPicker = new SlimSelect({
   }
 })
 
+const exportResPicker = new SlimSelect({
+  select: '#exportResolution',
+  settings: {
+    closeOnSelect: true,
+    placeholderText: "Select resolution",
+    searchPlaceholder: "Search resolutions"
+  },
+  events: {
+    afterChange() {
+      
+    },
+  }
+})
+
 /// Map
 
 const map = new Map({
@@ -333,6 +347,7 @@ function lowerBound(times: number[], target: number) {
 }
 
 async function start() {
+  (document.querySelector("#loading") as HTMLDivElement).style.opacity = "0"
   map.addSource("lines", {
     type: "geojson",
     data: {

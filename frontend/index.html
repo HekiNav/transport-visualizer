@@ -9,6 +9,21 @@
 </head>
 
 <body class="bg-neutral-900">
+  <div id="loading"
+    style="position: absolute; width: 100vw; height: 100vh; z-index: 10000; top: 0; left: 0; background-color: #222; display: flex; align-items: center; justify-content: center; color: #eee; font-size: 3em; font-family: Jost, Arial, Helvetica, sans-serif; flex-direction: column; opacity: 1; transition: 0.5s;">
+    LOADING
+    <div class="loading-image" style="width: 2em;">
+      <svg fill="#AAAAAAFF" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12,1A11,11,0,1,0,23,12,11,11,0,0,0,12,1Zm0,19a8,8,0,1,1,8-8A8,8,0,0,1,12,20Z" opacity=".25" />
+        <path
+          d="M12,4a8,8,0,0,1,7.89,6.7A1.53,1.53,0,0,0,21.38,12h0a1.5,1.5,0,0,0,1.48-1.75,11,11,0,0,0-21.72,0A1.5,1.5,0,0,0,2.62,12h0a1.53,1.53,0,0,0,1.49-1.3A8,8,0,0,1,12,4Z">
+          <animateTransform attributeName="transform" type="rotate" dur="0.75s" values="0 12 12;360 12 12"
+            repeatCount="indefinite" />
+        </path>
+      </svg>
+    </div>
+    <noscript>This site needs JavaScript to function</noscript>
+  </div>
   <div id="app" class="h-screen flex">
     <div id="content" class="h-full bg-neutral-900 p-8 overflow-y-scroll">
       <h1 class="text-4xl text-cyan-500 mb-4">Hekinav Transport Visualizer</h1>
@@ -81,25 +96,28 @@
           <label for="timelapseSpeed" class="text-nowrap grow-1 text-lg text-neutral-200">Timelapse speed</label>
         </div>
         <p class="text-neutral-200">Frame <span id="currentFrame">0</span>/<span id="totalFrames">100</span></p>
-        
+
         <button id="playTimelapse"
           class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Play</button>
-      <h2 class="text-2xl text-cyan-500 my-4">Export video</h2>
-      <select id="exportResolution">
-          <option value="480P_H">480P (Horizontal)</option>
-          <option value="480P_V">480P (Vertical)</option>
-          <option value="720P_H">HD 720P (Horizontal)</option>
-          <option value="720P_V">HD 720P (Vertical)</option>
-          <option value="1080P_H">Full HD 1080P (Horizontal)</option>
-          <option value="1080P_V">Full HD 1080P (Vertical)</option>
-          <option value="1440P_H">2K 1440P (Horizontal)</option>
-          <option value="1440P_V">2K 1440P (Vertical)</option>
-          <option value="2160P_H">4K 2160P (Horizontal)</option>
-          <option value="2160P_V">4K 2160P (Vertical)</option>
-        </select>
-      <button id="export"
+        <h2 class="text-2xl text-cyan-500 my-4">Export video</h2>
+        <div class="w-full flex justify-between gap-4 items-center">
+          <label for="routeType" class="text-nowrap grow-1 text-lg text-neutral-200">Route types</label>
+          <select id="exportResolution">
+            <option value="480P_H">480P (Horizontal)</option>
+            <option value="480P_V" selected>480P (Vertical)</option>
+            <option value="720P_H">HD 720P (Horizontal)</option>
+            <option value="720P_V">HD 720P (Vertical)</option>
+            <option value="1080P_H">Full HD 1080P (Horizontal)</option>
+            <option value="1080P_V">Full HD 1080P (Vertical)</option>
+            <option value="1440P_H">2K 1440P (Horizontal)</option>
+            <option value="1440P_V">2K 1440P (Vertical)</option>
+            <option value="2160P_H">4K 2160P (Horizontal)</option>
+            <option value="2160P_V">4K 2160P (Vertical)</option>
+          </select>
+        </div>
+        <button id="export"
           class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Export</button>
-      
+
       </div>
 
     </div>

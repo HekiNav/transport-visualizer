@@ -33,6 +33,9 @@
     /* Animation */
     --ss-animation-timing: 0.15s;
 }
+body {
+    overflow: hidden;
+}
 
 .full .clr-field button {
     width: 100%;
