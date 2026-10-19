@@ -312,7 +312,7 @@ const exportResPicker = new SlimSelect({
   },
   events: {
     afterChange() {
-      
+      console.log(exportResPicker.getSelected())
     },
   }
 })
@@ -347,7 +347,9 @@ function lowerBound(times: number[], target: number) {
 }
 
 async function start() {
-  (document.querySelector("#loading") as HTMLDivElement).style.opacity = "0"
+  setTimeout(() => {
+    (document.querySelector("#loading") as HTMLDivElement).style.opacity = "0";
+  }, 500)
   map.addSource("lines", {
     type: "geojson",
     data: {
@@ -440,7 +442,7 @@ function toggleTimelapse() {
     timelapseTimeout = setInterval(() => {
       timelapseFrame++;
       renderTimelapseFrame(timelapseFrame);
-      if (timelapseFrame >= timelapseData.length -1) {
+      if (timelapseFrame >= timelapseData.length - 1) {
         playTimelapseButton.textContent = "Play";
         clearInterval(timelapseTimeout || undefined);
         timelapseTimeout = null;
@@ -463,7 +465,7 @@ function onTimelapseSpeed(): (this: HTMLInputElement, ev: Event) => any {
     timelapseSpeedLabel.textContent = `${timelapseSpeed.value}x`;
     if (timelapseTimeout) {
       toggleTimelapse()
-      toggleTimelapse()        
+      toggleTimelapse()
     }
   };
 }
@@ -759,7 +761,7 @@ function generateTimelapse() {
 
 function renderTimelapseFrame(frame: number) {
 
-  currentFrame.textContent = (timelapseFrame+1).toString();
+  currentFrame.textContent = (timelapseFrame + 1).toString();
   const date = Temporal.Instant.fromEpochMilliseconds(picker.selectedDates[0].getTime() + frame * timelapseFrameDuration).toZonedDateTimeISO("Europe/Helsinki")
   time.textContent = `${date.day}.${date.month}.${date.year} ${date.hour.toString().padStart(2, "0")}:${date.minute.toString().padStart(2, "0")}`;
 
