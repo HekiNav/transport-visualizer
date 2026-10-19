@@ -293,7 +293,11 @@ function toggleTimelapse() {
     timelapseTimeout = setInterval(() => {
       timelapseFrame++;
       renderTimelapseFrame(timelapseFrame);
-      if (timelapseFrame >= timelapseData.length -1) toggleTimelapse()
+      if (timelapseFrame >= timelapseData.length -1) {
+        playTimelapseButton.textContent = "Play";
+        clearInterval(timelapseTimeout || undefined);
+        timelapseTimeout = null;
+      }
     }, 100 / timelapseSpeedMultiplier);
   }
 }
@@ -308,16 +312,12 @@ function onOpacity(): (this: HTMLInputElement, ev: Event) => any {
 
 function onTimelapseSpeed(): (this: HTMLInputElement, ev: Event) => any {
   return () => {
-   timelapseSpeedMultiplier = Number(timelapseSpeed.value)
-   timelapseSpeedLabel.textContent = `${timelapseSpeed.value}x`;
-   if (timelapseTimeout) {
-    clearInterval(timelapseTimeout)
-    timelapseTimeout = setInterval(() => {
-      timelapseFrame++;
-      renderTimelapseFrame(timelapseFrame);
-      if (timelapseFrame >= timelapseData.length -1) toggleTimelapse()
-    }, 100 / timelapseSpeedMultiplier);
-   }
+    timelapseSpeedMultiplier = Number(timelapseSpeed.value)
+    timelapseSpeedLabel.textContent = `${timelapseSpeed.value}x`;
+    if (timelapseTimeout) {
+      toggleTimelapse()
+      toggleTimelapse()        
+    }
   };
 }
 
@@ -549,11 +549,11 @@ async function loadMap() {
 
     reloadMapColours()
 
-    trips = json.data.reduce((p,c) => {
+    trips = json.data.reduce((p, c) => {
       const startTime = picker.selectedDates[0]
       const filteredMessages = c.messages!.filter(msg => new Date(msg.timestamp).getTime() >= startTime.getTime())
       if (filteredMessages.length == 0) return p
-      return [...p, {...c, messages: filteredMessages}]
+      return [...p, { ...c, messages: filteredMessages }]
     }, new Array<APITrip>())
 
     generateTimelapse()
@@ -680,7 +680,7 @@ function lowerBound(times: number[], target: number) {
 
 function renderTimelapseFrame(frame: number) {
 
-  currentFrame.textContent = timelapseFrame.toString();
+  currentFrame.textContent = (timelapseFrame+1).toString();
   const date = Temporal.Instant.fromEpochMilliseconds(picker.selectedDates[0].getTime() + frame * timelapseFrameDuration).toZonedDateTimeISO("Europe/Helsinki")
   time.textContent = `${date.day}.${date.month}.${date.year} ${date.hour.toString().padStart(2, "0")}:${date.minute.toString().padStart(2, "0")}`;
 
