@@ -293,6 +293,7 @@ function toggleTimelapse() {
     timelapseTimeout = setInterval(() => {
       timelapseFrame++;
       renderTimelapseFrame(timelapseFrame);
+      if (timelapseFrame >= timelapseData.length -1) toggleTimelapse()
     }, 100 / timelapseSpeedMultiplier);
   }
 }
@@ -314,6 +315,7 @@ function onTimelapseSpeed(): (this: HTMLInputElement, ev: Event) => any {
     timelapseTimeout = setInterval(() => {
       timelapseFrame++;
       renderTimelapseFrame(timelapseFrame);
+      if (timelapseFrame >= timelapseData.length -1) toggleTimelapse()
     }, 100 / timelapseSpeedMultiplier);
    }
   };
