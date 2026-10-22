@@ -114,7 +114,7 @@ Returns a list of departure dates with data available
 
 # Frontend
 
-The frontend fetches data from the backend and shows it on an interactive Maplibre map. The frontend is built with Vanilla TS and Vite.
+The frontend fetches data from the backend and shows it on an interactive Maplibre map. The frontend is built with Vanilla TS and Vite. The frontend can also export a timelapse as mp4 by using a hidden map to render the frames and ffmpeg wasm to combine frames into a video.
 
 ## Usage
 

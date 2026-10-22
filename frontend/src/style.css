@@ -43,6 +43,42 @@ body {
     border-radius: 5px;
     border: #e5e5e5 2px solid;
 }
+
+range-slider {
+  --track-size: 0.2rem;
+  --thumb-size: 1.2rem;
+
+  border-radius: var(--track-size);
+  margin: 2px;
+
+  &:not([orientation="vertical"]) {
+    inline-size: 100%;
+  }
+
+  &:active {
+    opacity: 0.8;
+  }
+
+  &[disabled] {
+    filter: grayscale(1);
+    opacity: 0.4;
+  }
+
+  [data-track] {
+    background-color: lightgray;
+    background-color: ButtonFace;
+  }
+
+  [data-track-fill] {
+    background-color: #06b6d4;
+  }
+
+  [data-thumb] {
+    background-color: #06b6d4;
+    border-radius: 0.25em;
+  }
+}
+
 .full .clr-field input {
     width: 30px;
     height: 30px;
