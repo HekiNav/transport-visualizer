@@ -436,6 +436,23 @@ async function start() {
         "circle-opacity": 0.5
       }
     })
+    m.addSource("export_box", {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: []
+      }
+    })
+    m.addLayer({
+      id: "export_box",
+      source: "export_box",
+      type: "line",
+      paint: {
+        "line-color": "#fff",
+        "line-width": 2,
+        "line-opacity": 0.5
+      }
+    })
   })
 
   loadDatePicker()
@@ -593,7 +610,21 @@ async function loadDatePicker(dataSources: string[] = []) {
 ///       █   █ █   █ █
 
 function onExportMapChange() {
-  console.log(exportMap.getBounds())
+  const bbox = exportMap.getBounds();
+  (map.getSource("export_box") as GeoJSONSource).setData({
+    type: "Feature",
+    geometry: {
+      type: "Polygon",
+      coordinates: [[
+        bbox.getNorthEast().toArray(),
+        bbox.getNorthWest().toArray(),
+        bbox.getSouthWest().toArray(),
+        bbox.getSouthEast().toArray(),
+        bbox.getNorthEast().toArray(),
+      ]]
+    },
+    properties: {}
+  })
 }
 
 function reloadMapColours() {
@@ -678,6 +709,7 @@ async function loadMap(fromButton = false) {
 
     const response = await fetch(API_URL + `/api/v1/trips?messages&departureDateRange=${dateRange}&dataSource=${dataSources.join(",")}&routeType=${routeTypes.join(",")}&terminus=${terminuses.join(",")}`, { signal: abortLoad?.signal })
     if (!response.ok || !response.body) {
+      console.log(response.status)
       throw new Error(`Request failed: ${response.status} ${response.statusText}`)
     }
 
