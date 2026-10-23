@@ -1,14 +1,19 @@
 # Transport visualizer
 
 The project consists of a backend and frontend in the same repo.
+The project can be used at [https://tvis.hekinav.dev](https://tvis.hekinav.dev/)
 
-[https://tvis.hekinav.dev](https://tvis.hekinav.dev/)
+## Table of contents
+- **[Frontend](#frontend)**
+- **[Backend](#backend)**
 
 ![Image of the website](images/site.png)
 
 # Backend
 
-The backend is a node.js typescript server which takes in data from [Digitraffic MQTT](https://www.digitraffic.fi/rautatieliikenne/#websocket-mqtt) and stores it in a postgres database. The data can be accessed via a public REST API using Express.js
+The backend is a node.js typescript server which takes in data from [Digitraffic MQTT](https://www.digitraffic.fi/rautatieliikenne/#websocket-mqtt) and stores it in a postgres database. The data can be accessed via a public REST API using Express.js.
+
+The server code is all in `src/main.ts`. The main function `start()` is the entry point to the code.
 
 ## Usage
 
