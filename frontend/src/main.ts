@@ -938,6 +938,8 @@ async function exportTimelapse() {
     abortExport.abort()
     return
   }
+
+  await new FontFace("Jost", "url(/Jost-VariableFont_wght.ttf)").load()
   exportButton.textContent = "Abort export"
 
   abortExport = new AbortController()
@@ -953,6 +955,10 @@ async function exportTimelapse() {
 
   exportMapContainer.hidden = false
 
+  const exportCanvas = exportMap.getCanvas()
+  const outCanvas = document.createElement('canvas')
+  const ctx = outCanvas.getContext('2d')!
+
   const ffmpeg = new FFmpeg()
   await ffmpeg.load()
 
@@ -961,6 +967,8 @@ async function exportTimelapse() {
     abortExport = null
     exportButton.textContent = "Export"
     progressToast.hideToast()
+    outCanvas.remove()
+
   })
 
   const resolution = resolutions[exportResPicker.getSelected()[0] as keyof typeof resolutions]
@@ -974,10 +982,8 @@ async function exportTimelapse() {
 
   await new Promise<void>((res) => setTimeout(() => res(), 1000))
 
-  const canvas = exportMap.getCanvas()
-
   fitMap(exportMap, 0)
-  setMapLineWidth(exportMap, 1 * (Math.max(...resolution) / 1000))
+  setMapLineWidth(exportMap, 2 * (Math.max(...resolution) / 1000))
 
   await new Promise<void>((res) => setTimeout(() => res(), 1000))
 
@@ -990,20 +996,31 @@ async function exportTimelapse() {
       if (filtered?.length == 0 && ct.messages!.length > 0) return [...pt, null]
       return pt
     }, new Array<APITrip | null>())
-    if (frame.filter(t => t === null).length > frame.length * 0.5) return pf
+    if (frame.filter(t => t === null).length >= frame.length * 0.2) return pf
     return [...pf, frame.filter(t => t !== null)]
   }, new Array<APITrip[]>()) : timelapseData
 
+
   if (!abortExport) return
-  await ffmpeg.writeFile('font.ttf', await fetchFile("/Jost-VariableFont_wght.ttf"));
 
   for (let i = 0; i < filtered.length; i++) {
     if (!abortExport) return
     progressToast.toastElement!.textContent = `Rendering frames: ${Math.floor(i / filtered.length * 100)}%` //(${i + 1}/${filtered.length})
-    renderTimelapseFrame(i, exportMap, false, filtered)
+    const label = renderTimelapseFrame(i, exportMap, false, filtered)
     await new Promise<void>((res) => exportMap.once("idle", () => res()))
+    outCanvas.width = exportCanvas.width 
+    outCanvas.height = exportCanvas.height
+    ctx.drawImage(exportCanvas, 0, 0)
+
+    ctx.save()
+    ctx.font = `400 ${Math.round(Math.min(...resolution) * 0.05)}px Jost`
+    ctx.textBaseline = 'top'
+    ctx.fillStyle = '#fff'
+    
+    ctx.fillText(label || "", Math.round(Math.min(...resolution) * 0.02), Math.round(Math.min(...resolution) * 0.02))
+    ctx.restore()
     if (!abortExport) return
-    const blob = await new Promise<Blob>((res, rej) => canvas.toBlob((b) => b ? res(b) : rej(b)))
+    const blob = await new Promise<Blob>((res, rej) => outCanvas.toBlob((b) => b ? res(b) : rej(b)))
     if (!abortExport) return
     await ffmpeg.writeFile(`frame_${i}.png`, await blob.bytes())
   }
@@ -1047,6 +1064,7 @@ async function exportTimelapse() {
   ffmpeg.terminate()
   abortExport = null
   exportButton.textContent = "Export"
+  outCanvas.remove()
 }
 
 map.once("style.load", () => { if (otherMapLoaded) start(); else otherMapLoaded = true })
