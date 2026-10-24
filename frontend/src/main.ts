@@ -1,4 +1,4 @@
-import { GeoJSONSource, LngLatBounds, Map, MapLibreMap, setWorkerUrl } from 'maplibre-gl';
+import { GeoJSONSource, LngLat, LngLatBounds, Map, MapLibreMap, setWorkerUrl } from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import flatpickr from "flatpickr";
 import * as GeoJSON from "geojson"
@@ -227,6 +227,12 @@ const timelapseSpeedLabel: HTMLInputElement = document.querySelector("#timelapse
 timelapseSpeed.addEventListener("change", onTimelapseSpeed)
 timelapseSpeed.addEventListener("mousemove", onTimelapseSpeed)
 
+const tailLength: HTMLInputElement = document.querySelector("#tailLength")!
+const tailLengthLabel: HTMLInputElement = document.querySelector("#tailLengthLabel")!
+
+tailLength.addEventListener("change", onTailLength)
+tailLength.addEventListener("mousemove", onTailLength)
+
 const toggleTimelapseButton: HTMLButtonElement = document.querySelector("#toggleTimelapse")!
 const timelapseContainer: HTMLButtonElement = document.querySelector("#timelapse")!
 
@@ -255,6 +261,38 @@ playTimelapseButton.addEventListener("click", () => {
   toggleTimelapse();
 })
 
+const timelapseStartButton: HTMLButtonElement = document.querySelector("#timelapseStart")!
+
+timelapseStartButton.addEventListener("click", () => {
+  if (timelapseTimeout) toggleTimelapse()
+  timelapseFrame = 0
+  renderTimelapseFrame(timelapseFrame)
+})
+
+const timelapseEndButton: HTMLButtonElement = document.querySelector("#timelapseEnd")!
+
+timelapseEndButton.addEventListener("click", () => {
+  if (timelapseTimeout) toggleTimelapse()
+  timelapseFrame = timelapseData.length - 1
+  renderTimelapseFrame(timelapseFrame)
+})
+
+const timelapseAdd100Button: HTMLButtonElement = document.querySelector("#timelapseAdd100")!
+
+timelapseAdd100Button.addEventListener("click", () => {
+  timelapseFrame = Math.max(0, Math.min(timelapseFrame + 100, timelapseData.length - 1))
+  renderTimelapseFrame(timelapseFrame)
+})
+
+const timelapseSubtract100Button: HTMLButtonElement = document.querySelector("#timelapseSubtract100")!
+
+timelapseSubtract100Button.addEventListener("click", () => {
+  timelapseFrame = Math.max(0, Math.min(timelapseFrame - 100, timelapseData.length - 1))
+  renderTimelapseFrame(timelapseFrame)
+})
+
+//if (timelapseTimeout)
+
 const backgroundMapCheckbox: HTMLInputElement = document.querySelector("#backgroundMap")!
 
 backgroundMapCheckbox.addEventListener("change", () => {
@@ -280,6 +318,28 @@ backgroundMapCheckbox.addEventListener("change", () => {
       })
   })
 
+})
+
+const exportBoundsCheckbox: HTMLInputElement = document.querySelector("#viewExportBounds")!
+
+exportBoundsCheckbox.addEventListener("change", () => {
+  map?.setLayoutProperty("export_box", "visibility", exportBoundsCheckbox.checked ? "visible" : "none")
+})
+
+const boundExportMap: HTMLButtonElement = document.querySelector("#cropExportMap")!
+
+boundExportMap.addEventListener("click", () => {
+  const mapBounds = map.getBounds()
+  const yDist = haversineDistance(mapBounds.getNorthEast(), mapBounds.getSouthEast())
+  const xDist = haversineDistance(mapBounds.getNorthWest(), mapBounds.getNorthEast())
+  const resolution = resolutions[exportResPicker.getSelected()[0] as keyof typeof resolutions]
+  const bounds = xDist / yDist < resolution[0] / resolution[1] ? new LngLatBounds([mapBounds.getWest(), mapBounds.getCenter().lat], [mapBounds.getEast(), mapBounds.getCenter().lat])
+    : new LngLatBounds([mapBounds.getCenter().lng, mapBounds.getNorth()], [mapBounds.getCenter().lng, mapBounds.getSouth()])
+  exportMap.fitBounds(bounds, {
+    duration: 0,
+    padding: 0,
+  })
+  onExportMapChange()
 })
 
 const colorsByRoutetypeCheckbox: HTMLInputElement = document.querySelector("#routeTypeColors")!
@@ -341,6 +401,11 @@ const exportResPicker = new SlimSelect({
     closeOnSelect: true,
     placeholderText: "Select resolution",
     searchPlaceholder: "Search resolutions"
+  },
+  events: {
+    afterChange() {
+      fitExportMap()
+    },
   }
 })
 
@@ -395,6 +460,32 @@ function lowerBound(times: number[], target: number) {
   return lo
 }
 
+function haversineDistance(coords1: LngLat, coords2: LngLat) {
+  function toRad(x: number) {
+    return x * Math.PI / 180;
+  }
+
+  var lon1 = coords1.lng;
+  var lat1 = coords1.lat;
+
+  var lon2 = coords2.lng;
+  var lat2 = coords2.lat;
+
+  var R = 6371; // km
+
+  var x1 = lat2 - lat1;
+  var dLat = toRad(x1);
+  var x2 = lon2 - lon1;
+  var dLon = toRad(x2)
+  var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = R * c;
+
+  return d;
+}
+
 async function start() {
   (document.querySelector("#loading") as HTMLDivElement).style.opacity = "0";
   setTimeout(() => {
@@ -436,29 +527,31 @@ async function start() {
         "circle-opacity": 0.5
       }
     })
-    m.addSource("export_box", {
-      type: "geojson",
-      data: {
-        type: "FeatureCollection",
-        features: []
-      }
-    })
-    m.addLayer({
-      id: "export_box",
-      source: "export_box",
-      type: "line",
-      paint: {
-        "line-color": "#fff",
-        "line-width": 2,
-        "line-opacity": 0.5
-      }
-    })
+  })
+
+  map.addSource("export_box", {
+    type: "geojson",
+    data: {
+      type: "FeatureCollection",
+      features: []
+    }
+  })
+  map.addLayer({
+    id: "export_box",
+    source: "export_box",
+    type: "line",
+    paint: {
+      "line-color": "#fff",
+      "line-width": 2,
+      "line-opacity": 0.5
+    }
   })
 
   loadDatePicker()
   loadColorPickers()
   onOpacity()
   onTimelapseSpeed()
+  onTailLength()
   onExportRange()
 
   if (localStorage.getItem("selectedStations")) {
@@ -485,6 +578,7 @@ async function start() {
   }
   setMapLineWidth(map, 1)
   setMapLineWidth(exportMap, 1)
+
 }
 
 function getStoredStationList() {
@@ -506,17 +600,20 @@ function getStoredStationList() {
 ///       █   █   █   █   █ █████
 
 function toggleTimelapse() {
+  if (timelapseFrame >= timelapseData.length - 1) {
+    timelapseFrame = 0
+  }
   if (timelapseTimeout) {
-    playTimelapseButton.textContent = "Play";
+    Array.from(playTimelapseButton.children).forEach(c => (c as HTMLImageElement).hidden = c.id != "playIcon")
     clearInterval(timelapseTimeout);
     timelapseTimeout = null;
   } else {
-    playTimelapseButton.textContent = "Stop";
+    Array.from(playTimelapseButton.children).forEach(c => (c as HTMLImageElement).hidden = c.id != "pauseIcon")
     timelapseTimeout = setInterval(() => {
       timelapseFrame++;
       renderTimelapseFrame(timelapseFrame);
       if (timelapseFrame >= timelapseData.length - 1) {
-        playTimelapseButton.textContent = "Play";
+        Array.from(playTimelapseButton.children).forEach(c => (c as HTMLImageElement).hidden = c.id != "replayIcon")
         clearInterval(timelapseTimeout || undefined);
         timelapseTimeout = null;
       }
@@ -550,6 +647,11 @@ function onTimelapseSpeed() {
     toggleTimelapse()
     toggleTimelapse()
   }
+}
+
+function onTailLength() {
+  timelapseTailLength = Number(tailLength.value)
+  tailLengthLabel.textContent = `${tailLength.value}`;
 }
 
 function loadColorPickers() {
@@ -787,7 +889,6 @@ async function loadMap(fromButton = false) {
     }
     fitMap()
 
-
     progressToast.hideToast()
     loadButton.textContent = "Load"
     abortLoad = null
@@ -799,6 +900,9 @@ async function loadMap(fromButton = false) {
       position: "right",
       ...toastConfig,
     }).showToast()
+
+    fitExportMap()
+
   } catch (error) {
     if (String(error).includes("AbortError")) return
     Toastify({
@@ -832,13 +936,13 @@ function drawTrips(m: MapLibreMap = map) {
   });
 }
 
-function fitMap(m: MapLibreMap = map, duration = 1000) {
+function fitMap(m: MapLibreMap = map, duration = 1000, padding = 100) {
   const bounds = (trips[0] && trips[0].messages && trips[0].messages?.length > 1) ? new LngLatBounds(trips[0].messages![0], trips[0].messages![1]) : null;
   trips.forEach(({ messages }) => {
     if (bounds) messages?.forEach(msg => bounds.extend(msg));
   })
   if (bounds) m.fitBounds(bounds, {
-    padding: 100,
+    padding: padding,
     essential: true,
     duration: duration
   });
@@ -930,7 +1034,7 @@ function renderTimelapseFrame(frame: number, m: MapLibreMap = map, htmlDetails =
     ]
   });
 
-  const [min, max] = (!htmlDetails && exportDateRange) || picker.selectedDates/* data.reduce((pf, cf) => {
+  const [min, _max] = (!htmlDetails && exportDateRange) || picker.selectedDates/* data.reduce((pf, cf) => {
     const [tripSmallest, tripLargest] = cf.reduce((pt, ct) => {
       const [msgSmallest, msgLargest] = ct.messages!.reduce((pm, cm) => {
         const time = new Date(cm.timestamp).getTime()
@@ -964,6 +1068,21 @@ function renderTimelapseFrame(frame: number, m: MapLibreMap = map, htmlDetails =
 /// █████ ████    █   ████  █   █ ████    █
 ///       █      █ █  █     █   █ █  █    █
 ///       █████ █   █ █      ███  █   █   █
+
+async function fitExportMap() {
+  const resolution = resolutions[exportResPicker.getSelected()[0] as keyof typeof resolutions]
+  if (!resolution) return
+
+  exportMapContainer.style.width = `${resolution[0]}px`
+  exportMapContainer.style.height = `${resolution[1]}px`
+
+  console.log("eeee")
+
+  await new Promise((res) => setTimeout(res, 500))
+  fitMap(exportMap, 0, Math.max(...resolution) * 0.05)
+  await new Promise((res) => setTimeout(res, 500))
+  onExportMapChange()
+}
 
 async function exportTimelapse() {
   if (abortExport) {
@@ -1004,17 +1123,7 @@ async function exportTimelapse() {
   })
 
   const resolution = resolutions[exportResPicker.getSelected()[0] as keyof typeof resolutions]
-  if (!resolution) return
 
-  exportMapContainer.style.width = `${resolution[0]}px`
-  exportMapContainer.style.height = `${resolution[1]}px`
-  //exportMapContainer.style.transform = `scale(0.1)`
-
-  if (!abortExport) return
-
-  await new Promise<void>((res) => setTimeout(() => res(), 1000))
-
-  fitMap(exportMap, 0)
   setMapLineWidth(exportMap, 2 * (Math.max(...resolution) / 1000))
 
   await new Promise<void>((res) => setTimeout(() => res(), 1000))
@@ -1040,7 +1149,7 @@ async function exportTimelapse() {
     progressToast.toastElement!.textContent = `Rendering frames: ${Math.floor(i / filtered.length * 100)}%` //(${i + 1}/${filtered.length})
     const label = renderTimelapseFrame(i, exportMap, false, filtered)
     await new Promise<void>((res) => exportMap.once("idle", () => res()))
-    outCanvas.width = exportCanvas.width 
+    outCanvas.width = exportCanvas.width
     outCanvas.height = exportCanvas.height
     ctx.drawImage(exportCanvas, 0, 0)
 
@@ -1048,7 +1157,7 @@ async function exportTimelapse() {
     ctx.font = `400 ${Math.round(Math.min(...resolution) * 0.05)}px Jost`
     ctx.textBaseline = 'top'
     ctx.fillStyle = '#fff'
-    
+
     ctx.fillText(label || "", Math.round(Math.min(...resolution) * 0.02), Math.round(Math.min(...resolution) * 0.02))
     ctx.restore()
     if (!abortExport) return

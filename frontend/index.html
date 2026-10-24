@@ -55,12 +55,19 @@
         class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Load</button>
       <h2 class="text-2xl text-cyan-500 my-4">2. Edit style</h2>
       <div class="w-full flex justify-start gap-4 items-center">
-        <input type="checkbox" checked name="" id="backgroundMap" class=" accent-cyan-500" autocomplete="off">
+        <input type="checkbox" checked name="" id="backgroundMap" class=" accent-cyan-500">
         <label for="backgroundMap" class="text-nowrap grow-1 text-lg text-neutral-200">Background map</label>
       </div>
       <div class="w-full flex justify-start gap-4 items-center">
         <input type="checkbox" name="" id="routeTypeColors" class=" accent-cyan-500" autocomplete="off" checked>
         <label for="routeTypeColors" class="text-nowrap grow-1 text-lg text-neutral-200">Color by route type</label>
+      </div>
+      <br>
+      <div class="w-full flex justify-start gap-4 items-center">
+        <range-slider id="tailLength" type="range" min="0" max="100" step="5" class="max-w-60 accent-cyan-500"
+          value="10"></range-slider>
+        <span class="text-neutral-200" id="tailLengthLabel">1</span>
+        <label for="tailLength" class="text-nowrap grow-1 text-lg text-neutral-200">Tail length</label>
       </div>
       <h3 class="text-lg text-cyan-500 mt-2">Colors</h3>
       <div id="colors">
@@ -81,15 +88,31 @@
         to timelapse</button>
       <div id="timelapse" hidden>
         <div class="w-full flex justify-start gap-4 items-center">
-          <range-slider id="timelapseSpeed" type="range" min="0.5" max="3" step="0.5" id="timelapseSpeed"
+          <range-slider id="timelapseSpeed" type="range" min="0.5" max="5" step="0.5" id="timelapseSpeed"
             class="max-w-60 accent-cyan-500" value="1" autocomplete="off"></range-slider>
           <span class="text-neutral-200" id="timelapseSpeedLabel">1x</span>
           <label for="timelapseSpeed" class="text-nowrap grow-1 text-lg text-neutral-200">Timelapse speed</label>
         </div>
         <p class="text-neutral-200">Frame <span id="currentFrame">0</span>/<span id="totalFrames">100</span></p>
-
-        <button id="playTimelapse"
-          class="my-2 border-neutral-200 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Play</button>
+        <div id="media-controls" class="flex items-center gap-2">
+          <button id="timelapseStart" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+            <img src="/previous.svg" alt="Start" srcset="">
+          </button>
+          <button id="timelapseSubtract100" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+            <img src="/fast-backward.svg" alt="" srcset="">
+          </button>
+          <button id="playTimelapse" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+            <img id="playIcon" src="/play.svg" alt="Play" srcset="">
+            <img id="pauseIcon" src="/pause.svg" alt="Pause" srcset="" hidden>
+            <img id="replayIcon" src="/replay.svg" alt="Replay" srcset="" hidden>
+          </button>
+          <button id="timelapseAdd100" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+            <img src="/fast-forward.svg" alt="Forward" srcset="">
+          </button>
+          <button id="timelapseEnd" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+            <img src="/next.svg" alt="End" srcset="">
+          </button>
+        </div>
 
       </div>
       <h2 class="text-2xl text-cyan-500 my-4">4. Export video</h2>
@@ -133,7 +156,8 @@
 
       <div class="w-full flex justify-start gap-4 items-center">
         <input type="checkbox" checked name="" id="viewExportBounds" class=" accent-cyan-500" autocomplete="off">
-        <label for="viewExportBounds" class="text-nowrap grow-1 text-lg text-neutral-200">View export bounds on map</label>
+        <label for="viewExportBounds" class="text-nowrap grow-1 text-lg text-neutral-200">View export bounds on
+          map</label>
       </div>
       <button id="export"
         class="my-2 border-neutral-200 mt-8 border-2 p-1 rounded text-neutral-200 accent-cyan-500 text-xl active:border-cyan-500 disabled:border-neutral-500">Export</button>
@@ -143,7 +167,7 @@
     </div>
   </div>
   <div style="pointer-events: none; overflow: scroll; z-index: -1; position: fixed;">
-    <div id="exportMapContainer" class="relative" hidden>
+    <div id="exportMapContainer" class="relative">
       <div id="exportMap" class="h-full w-full"></div>
     </div>
   </div>
