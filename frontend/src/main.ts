@@ -544,6 +544,9 @@ async function start() {
       "line-color": "#fff",
       "line-width": 2,
       "line-opacity": 0.5
+    },
+    layout: {
+      visibility: "none"
     }
   })
 
@@ -579,6 +582,7 @@ async function start() {
   setMapLineWidth(map, 1)
   setMapLineWidth(exportMap, 1)
 
+  map?.setLayoutProperty("export_box", "visibility", exportBoundsCheckbox.checked ? "visible" : "none")
 }
 
 function getStoredStationList() {
