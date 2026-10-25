@@ -49,7 +49,7 @@ type APITrip = {
   messages?: APIMessage[]
 }
 
-type APIRouteType = /* "BUS" | */ "TRAIN_LONG_DISTANCE" | "TRAIN_COMMUTER" | "TRAIN_FREIGHT" | "TRAIN_SHUNT" | "TRAIN_OTHER" | "TRAIN_REGIONAL" | "TRAIN_TRANSFER" | "TRAIN_SLEEPER"/*  | "TRAM" | "FERRY" | "LIGHT_RAIL" */
+type APIRouteType = "BUS" | "TRAIN_LONG_DISTANCE" | "TRAIN_COMMUTER" | "TRAIN_FREIGHT" | "TRAIN_SHUNT" | "TRAIN_OTHER" | "TRAIN_REGIONAL" | "TRAIN_TRANSFER" | "TRAIN_SLEEPER" | "TRAM" | "FERRY" | "LIGHT_RAIL" | "METRO"
 
 type APIError = {
   code: number,
@@ -110,6 +110,11 @@ const routeTypeNames: { [t in APIRouteType]: string } = {
   TRAIN_TRANSFER: "Stock transfer train",
   TRAIN_SHUNT: "Shunting train",
   TRAIN_OTHER: "Other train",
+  METRO: "Metro",
+  BUS: "Bus",
+  TRAM: "Tram",
+  FERRY: "Ferry",
+  LIGHT_RAIL: "Light rail"
 }
 
 const ColorSwatch = {
@@ -140,6 +145,11 @@ const defaultColors: { [t in APIRouteType]: string } = {
   TRAIN_SHUNT: ColorSwatch.ORANGE,
   TRAIN_REGIONAL: ColorSwatch.RED,
   TRAIN_OTHER: ColorSwatch.PINK,
+  BUS: ColorSwatch.BLUE_CYAN,
+  TRAM: ColorSwatch.GREEN,
+  FERRY: ColorSwatch.CYAN,
+  LIGHT_RAIL: ColorSwatch.PINK,
+  METRO: ColorSwatch.ORANGE
 }
 
 const API_URL = "https://tvis-api-dev.hekinav.dev"
