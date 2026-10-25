@@ -16,7 +16,6 @@ import './style.css'
 import "toastify-js/src/toastify.css"
 import "@melloware/coloris/dist/coloris.css";
 import 'range-slider-element/style.css';
-import { fetchFile } from '@ffmpeg/util';
 
 
 /// █████ █   █ ████  █████  ████

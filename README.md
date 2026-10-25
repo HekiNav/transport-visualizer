@@ -122,7 +122,35 @@ Returns a list of departure dates with data available
 
 The frontend fetches data from the backend and shows it on an interactive Maplibre map. The frontend is built with Vanilla TS and Vite. The frontend can also export a timelapse as mp4 by using a hidden map to render the frames and ffmpeg wasm to combine frames into a video.
 
-## Usage
+## Using the website
+
+### 1. Select one or more data sources and route types.
+- Terminus filtering is optional
+- You can customize the date range selection too. Please don't select more than 5 days worth of data as it overloads the server
+- **Remember to press LOAD to load data to the map.**
+### 2. Edit the map style
+- Tail length only applies to timelapses
+### 3. View the timelapse in the browser
+- Use the media player buttons to control playback
+- On lower end or mobile devices this may lag
+### 4. Export timelapse
+- Choose a resolution and wait for the rendering to complete
+
+## Export system
+The export system uses an off-screen map and ffmpeg.wasm to render and compile the video
+
+1. Map preparation
+- The offscreen map is scaled to the requested resolution and the contents of the map are fit to the viewport
+2. Rendering
+- Each frame is rendered and stored in a temporary filesystem on device.
+- This requires the user to have the tab open
+3. Video processing
+- The frames are compiled to a complete mp4 on-device using ffmpeg.wasm
+- This runs in the background on most browsers
+4. Download
+- The video is downloaded as tvis-out.mp4 to the user's downloads folder
+
+## Running frontend server
 
 All commands should be executed in the `/frontend` directory
 
