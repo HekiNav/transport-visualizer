@@ -310,7 +310,7 @@ async function start() {
   })
   app.get("/api/v1/dates", async (req, res) => {
     try {
-      let query = db.orm.public.Trip.select("departureDate").distinct("departureDate")
+      let query = db.orm.public.Trip.select("departureDate", "dataSource").distinct("departureDate", "dataSource")
       try {
         if (req.query.dataSource) {
           const typeEnum = z.array(z.enum(["DIGITRAFFIC", "HSL"]))

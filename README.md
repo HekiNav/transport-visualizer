@@ -12,7 +12,7 @@ The project can be used at [https://tvis.hekinav.dev](https://tvis.hekinav.dev/)
 
 # Backend
 
-The backend is a node.js typescript server which takes in data from [Digitraffic MQTT](https://www.digitraffic.fi/rautatieliikenne/#websocket-mqtt) and stores it in a postgres database. The data can be accessed via a public REST API using Express.js.
+The backend is a node.js typescript server which takes in data from [HSL MQTT](https://digitransit.fi/en/developers/apis/5-realtime-api/vehicle-positions/high-frequency-positioning/) & [Digitraffic MQTT](https://www.digitraffic.fi/rautatieliikenne/#websocket-mqtt) and stores it in a postgres database. The data can be accessed via a public REST API using Express.js.
 
 The server code is all in `src/main.ts`. The main function `start()` is the entry point to the code.
 
@@ -26,7 +26,7 @@ The server code is all in `src/main.ts`. The main function `start()` is the entr
 
 ## Bulk importing data
 
-`src/data/import.ts` is a script to bulk import all events from one day to the database. The archived GPS positions can be found at [the Digitraffic Archive](https://rata.digitraffic.fi/api/v1/train-locations/dumps/list.html).
+`src/data/import.ts` is a script to bulk import all events from one day to the database. The archived GPS positions can be found at [the Digitraffic Archive](https://rata.digitraffic.fi/api/v1/train-locations/dumps/list.html). No archived positions are available for HSL trips
 
 To use the script, you need to manually set the date and filename in the import.ts file. (rows 288 and 305)
 

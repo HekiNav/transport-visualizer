@@ -33,19 +33,23 @@
       <div class="w-full flex justify-between gap-4 items-center">
         <label for="routeType" class="text-nowrap grow-1 text-lg text-neutral-200">Route types</label>
         <select id="routeType" multiple>
-          <option value="BUS">Bus</option>
-          <option value="TRAIN_LONG_DISTANCE">Long-distance trains</option>
-          <option value="TRAIN_COMMUTER">Commuter trains</option>
-          <option value="TRAIN_FREIGHT">Freight trains</option>
-          <option value="TRAIN_SHUNT">Shunting trains</option>
-          <option value="TRAIN_REGIONAL">Regional trains</option>
-          <option value="TRAIN_TRANSFER">Stock transfer trains</option>
-          <option value="TRAIN_SLEEPER">Sleeper trains</option>
-          <option value="TRAIN_OTHER">Other trains</option>
-          <option value="TRAM">Tram</option>
-          <option value="FERRY">Ferry</option>
-          <option value="LIGHT_RAIL">Light rail</option>
-          <option value="METRO">Metro</option>
+          <optgroup label="Trains">
+            <option value="TRAIN_LONG_DISTANCE">Long-distance trains</option>
+            <option value="TRAIN_COMMUTER">Commuter trains</option>
+            <option value="TRAIN_FREIGHT">Freight trains</option>
+            <option value="TRAIN_SHUNT">Shunting trains</option>
+            <option value="TRAIN_REGIONAL">Regional trains</option>
+            <option value="TRAIN_TRANSFER">Stock transfer trains</option>
+            <option value="TRAIN_SLEEPER">Sleeper trains</option>
+            <option value="TRAIN_OTHER">Other trains</option>
+          </optgroup>
+          <optgroup label="Others">
+            <option value="BUS">Bus</option>
+            <option value="TRAM">Tram</option>
+            <option value="FERRY">Ferry</option>
+            <option value="LIGHT_RAIL">Light rail</option>
+            <option value="METRO">Metro</option>
+          </optgroup>
         </select>
       </div>
       <div class="w-full flex justify-between gap-4 items-center my-2">
