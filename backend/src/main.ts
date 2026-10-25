@@ -350,7 +350,7 @@ async function start() {
 export async function parseMessage<T extends "HSL" | "DIGITRAFFIC" = "HSL" | "DIGITRAFFIC">(msg: MQTTMessage<T>, detailData: DetailsFor<T>[], tx: Tx) {
   try {
     const json = msg.data
-    const tripId = msg.source == "HSL" ? `HSL/${json.oday}/${json.start}/${json.route}/${json.dir}` : `${json.departureDate}/${json.trainNumber}`
+    const tripId = msg.source == "HSL" ? `HSL/${json.oday}/${json.start}/${json.route}/${json.dir}-${json.oper}/${json.veh}` : `${json.departureDate}/${json.trainNumber}`
 
     const msgPos = msg.source == "HSL" ? { lat: json.lat, lng: json.long } : { lat: json.location.coordinates[1], lng: json.location.coordinates[0] }
 
