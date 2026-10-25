@@ -22,6 +22,7 @@
         <label for="dataSource" class="text-nowrap grow-1 text-lg text-neutral-200">Data source</label>
         <select id="dataSource" class="shrink-1" multiple>
           <option value="DIGITRAFFIC" selected>Digitraffic</option>
+          <option value="HSL">HSL</option>
         </select>
       </div>
       <div class="w-full flex justify-between gap-4 items-center">
@@ -32,7 +33,7 @@
       <div class="w-full flex justify-between gap-4 items-center">
         <label for="routeType" class="text-nowrap grow-1 text-lg text-neutral-200">Route types</label>
         <select id="routeType" multiple>
-          <!-- <option value="BUS">Bus</option> -->
+          <option value="BUS">Bus</option>
           <option value="TRAIN_LONG_DISTANCE">Long-distance trains</option>
           <option value="TRAIN_COMMUTER">Commuter trains</option>
           <option value="TRAIN_FREIGHT">Freight trains</option>
@@ -41,9 +42,10 @@
           <option value="TRAIN_TRANSFER">Stock transfer trains</option>
           <option value="TRAIN_SLEEPER">Sleeper trains</option>
           <option value="TRAIN_OTHER">Other trains</option>
-          <!-- <option value="TRAM"></option>
-        <option value="FERRY"></option>
-        <option value="LIGHT_RAIL"></option> -->
+          <option value="TRAM">Tram</option>
+          <option value="FERRY">Ferry</option>
+          <option value="LIGHT_RAIL">Light rail</option>
+          <option value="METRO">Metro</option>
         </select>
       </div>
       <div class="w-full flex justify-between gap-4 items-center my-2">
@@ -95,21 +97,26 @@
         </div>
         <p class="text-neutral-200">Frame <span id="currentFrame">0</span>/<span id="totalFrames">100</span></p>
         <div id="media-controls" class="flex items-center gap-2">
-          <button id="timelapseStart" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+          <button id="timelapseStart"
+            class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
             <img src="/previous.svg" alt="Start" srcset="">
           </button>
-          <button id="timelapseSubtract100" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+          <button id="timelapseSubtract100"
+            class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
             <img src="/fast-backward.svg" alt="" srcset="">
           </button>
-          <button id="playTimelapse" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+          <button id="playTimelapse"
+            class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
             <img id="playIcon" src="/play.svg" alt="Play" srcset="">
             <img id="pauseIcon" src="/pause.svg" alt="Pause" srcset="" hidden>
             <img id="replayIcon" src="/replay.svg" alt="Replay" srcset="" hidden>
           </button>
-          <button id="timelapseAdd100" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+          <button id="timelapseAdd100"
+            class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
             <img src="/fast-forward.svg" alt="Forward" srcset="">
           </button>
-          <button id="timelapseEnd" class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
+          <button id="timelapseEnd"
+            class="my-2 border-neutral-200 border-2 p-1 rounded accent-cyan-500 active:border-cyan-500 disabled:border-neutral-500">
             <img src="/next.svg" alt="End" srcset="">
           </button>
         </div>

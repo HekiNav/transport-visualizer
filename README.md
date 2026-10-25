@@ -1,4 +1,5 @@
 # Transport visualizer
+A system to view historical positions of vehicles on a map, as a timelapse, or even exported as an mp4 file.
 
 The project consists of a backend and frontend in the same repo.
 The project can be used at [https://tvis.hekinav.dev](https://tvis.hekinav.dev/)

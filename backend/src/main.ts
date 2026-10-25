@@ -11,8 +11,8 @@ export type Message = CollectionRowOf<typeof db.orm.public.Message>
 export type Trip = CollectionRowOf<typeof db.orm.public.Trip>
 export type RouteType = Trip["routeType"]
 
-export type MQTTMessage = {
-  source: "DIGITRAFFIC",
+export type MQTTMessage<T = "DIGITRAFFIC" | "HSL"> = {
+  source: T,
   data: any
 }
 export type LatLng = {
@@ -39,6 +39,25 @@ export type DigiTrafficTrain = {
     }
   }
 }
+
+export type HslRoute = {
+  shortName: string
+  gtfsId: string
+  type: number,
+  mode: string
+  longName: string
+  agency: {
+    name: string
+    gtfsId: string
+  }
+  stops: {
+    name: string
+    code: string
+  }[]
+}
+
+type DetailsFor<T = "HSL" | "DIGITRAFFIC"> =
+  T extends "HSL" ? HslRoute[] : DigiTrafficTrain[];
 
 // GraphQL queries
 const digitrafficTrainDetailsQuery = `
@@ -89,13 +108,56 @@ query AllTrainDetailsQuery($depDate: Date!) {
   }
 }
 `
+export const hslAllRouteDetailsQuery = `
+{
+  routes {
+    shortName
+    gtfsId
+    type
+    mode
+    longName
+    agency {
+      name
+      gtfsId
+    }
+    stops {
+      name
+      code
+    }
+  }
+}
+`
 
-const client = mqtt.connect("wss://rata.digitraffic.fi/mqtt");
+export const hslRouteDetailsQuery = `
+query RouteQuery($id: String!) {
+  route(id: $id) {
+    shortName
+    gtfsId
+    type
+    mode
+    longName
+    agency {
+      name
+      gtfsId
+    }
+    stops {
+      name
+      code
+    }
+  }
+}
+`
+
+const digitrafficClient = mqtt.connect("wss://rata.digitraffic.fi/mqtt");
+
+const hslClient = mqtt.connect("mqtts://mqtt.hsl.fi:8883/");
 
 // Batching
-let lastBatch: number = Date.now()
-const nextBatch: Buffer[] = []
+let lastDigitrafficBatch: number = Date.now()
+const nextDigitrafficBatch: Buffer[] = []
 
+let lastHslBatch: number = Date.now()
+const nextHslBatch: Buffer[] = []
 
 const seenTrips = new Map<string, { trip: Trip, lastPos: LatLng, lastTime: Temporal.ZonedDateTime }>()
 
@@ -119,26 +181,47 @@ start()
 async function start() {
 
 
-  client.on("connect", () => {
-    console.log("Connected")
-    client.subscribe("train-locations/#", (err) => {
+  digitrafficClient.on("connect", () => {
+    console.log("Connected to DIGITRAFFIC")
+    digitrafficClient.subscribe("train-locations/#", (err) => {
     })
   })
+
+  hslClient.on("connect", () => {
+    console.log("Connected to HSL")
+    hslClient.subscribe("/hfp/v2/journey/ongoing/vp/#", (err) => {
+    })
+  })
+
   const allDigitrafficTrainDetails = (await GraphQl(digitrafficAllTrainDetailsQuery, process.env.DIGITRAFFIC_GRAPHQL || "https://rata.digitraffic.fi/api/v2/graphql/graphql", { depDate: new Date().toISOString().slice(0, 10) }, JSON.parse(process.env.DIGITRAFFIC_HEADERS || "{}") || {}))?.data?.trainsByDepartureDate
+  const allHslDetails = (await GraphQl(hslAllRouteDetailsQuery, (process.env.HSL_GRAPHQL || "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1") + "?digitransit-subscription-key=" + process.env.DIGITRANSIT_KEY, {}, { "Content-Type": "application/json" }))?.data?.routes
 
-  client.on("message", (topic, message) => {
+  digitrafficClient.on("message", (topic, message) => {
 
-    if (Date.now() - lastBatch >= 500) {
-      const currentBatch = [...nextBatch]
-      lastBatch = Date.now()
-      nextBatch.length = 0
-      //console.log(`Processing batch: ${currentBatch.length} messages`)
+    if (Date.now() - lastDigitrafficBatch >= 500) {
+      const currentDigitrafficBatch = [...nextDigitrafficBatch]
+      lastDigitrafficBatch = Date.now()
+      nextDigitrafficBatch.length = 0
+      //console.log(`Processing batch: ${currentDigitrafficBatch.length} messages`)
       db.transaction(tx =>
-        Promise.all(currentBatch.map((msg, i) => parseMessage({ data: JSON.parse(msg.toString()), source: "DIGITRAFFIC" }, allDigitrafficTrainDetails, tx)))
+        Promise.all(currentDigitrafficBatch.map((msg, i) => parseMessage({ data: JSON.parse(msg.toString()), source: "DIGITRAFFIC" }, allDigitrafficTrainDetails, tx)))
       )
     }
 
-    nextBatch.push(message)
+    nextDigitrafficBatch.push(message)
+  });
+
+  hslClient.on("message", async (topic, message) => {
+
+    if (Date.now() - lastHslBatch >= 500) {
+      const currentHslBatch = [...nextHslBatch]
+      lastHslBatch = Date.now()
+      nextHslBatch.length = 0
+      //console.log(`Processing HSL batch: ${currentHslBatch.length} messages`)
+      await Promise.all(currentHslBatch.map((msg, i) => db.transaction(tx => parseMessage({ data: JSON.parse(msg.toString()).VP, source: "HSL" }, allHslDetails, tx))))
+    }
+
+    nextHslBatch.push(message)
   });
 
   const app = express()
@@ -181,16 +264,16 @@ async function start() {
         query = query.where(p => or(p.startPointId.in(req.query.terminus?.toString().split(",") || []), p.endPointId.in(req.query.terminus?.toString().split(",") || [])))
       }
       if (req.query.dataSource) {
-        const typeEnum = z.array(z.enum(["DIGITRAFFIC"]))
+        const typeEnum = z.array(z.enum(["DIGITRAFFIC", "HSL"]))
         const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource.toString().split(","))
         if (!success) {
-          throw `Invalid routeType: ${z.treeifyError(error).errors}`
+          throw `Invalid dataSource: ${z.treeifyError(error).errors}`
         } else {
           query = query.where(p => p.dataSource.in(data))
         }
       }
       if (req.query.routeType) {
-        const typeEnum = z.array(z.enum(["BUS", "TRAIN_LONG_DISTANCE", "TRAIN_COMMUTER", "TRAIN_FREIGHT", "TRAIN_SHUNT", "TRAIN_OTHER", "TRAIN_REGIONAL", "TRAIN_TRANSFER", "TRAIN_SLEEPER", "TRAM", "FERRY", "LIGHT_RAIL"]))
+        const typeEnum = z.array(z.enum(["BUS", "TRAIN_LONG_DISTANCE", "TRAIN_COMMUTER", "TRAIN_FREIGHT", "TRAIN_SHUNT", "TRAIN_OTHER", "TRAIN_REGIONAL", "TRAIN_TRANSFER", "TRAIN_SLEEPER", "TRAM", "FERRY", "LIGHT_RAIL", "METRO"]))
         const { success, data, error } = await typeEnum.safeParseAsync(req.query.routeType.toString().split(","))
         if (!success) {
           throw `Invalid routeType: ${z.treeifyError(error).errors}`
@@ -208,7 +291,6 @@ async function start() {
     }
 
     if (req.query.messages !== undefined) {
-      console.log("djjdj")
       query = query.include("messages", (p) => p.orderBy((e) => e.timestamp.asc()))
     }
     try {
@@ -231,12 +313,12 @@ async function start() {
       let query = db.orm.public.Trip.select("departureDate").distinct("departureDate")
       try {
         if (req.query.dataSource) {
-          const typeEnum = z.enum(["DIGITRAFFIC"])
-          const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource)
+          const typeEnum = z.array(z.enum(["DIGITRAFFIC", "HSL"]))
+          const { success, data, error } = await typeEnum.safeParseAsync(req.query.dataSource.toString().split(","))
           if (!success) {
-            throw `Invalid routeType: ${z.treeifyError(error).errors}`
+            throw `Invalid dataSource: ${z.treeifyError(error).errors}`
           } else {
-            query = query.where(p => p.dataSource.eq(data))
+            query = query.where(p => p.dataSource.in(data))
           }
         }
       } catch (error) {
@@ -264,12 +346,13 @@ async function start() {
 
 }
 
-export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: DigiTrafficTrain[], tx: Tx) {
+// Very messy message parsing
+export async function parseMessage<T extends "HSL" | "DIGITRAFFIC" = "HSL" | "DIGITRAFFIC">(msg: MQTTMessage<T>, detailData: DetailsFor<T>[], tx: Tx) {
   try {
     const json = msg.data
-    const tripId = `${json.departureDate}/${json.trainNumber}`
+    const tripId = msg.source == "HSL" ? `HSL/${json.oday}/${json.start}/${json.route}/${json.dir}` : `${json.departureDate}/${json.trainNumber}`
 
-    const msgPos = { lat: json.location.coordinates[1], lng: json.location.coordinates[0] }
+    const msgPos = msg.source == "HSL" ? { lat: json.lat, lng: json.long } : { lat: json.location.coordinates[1], lng: json.location.coordinates[0] }
 
     if (!seenTrips.has(tripId)) {
       let trip: Trip | null = null
@@ -278,7 +361,7 @@ export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: Di
         trip = dbTrip
       } else {
         // Prefer already cached data on initial ingest to
-        const details = await getDigitrafficDetails(json.trainNumber, json.departureDate, digitrafficTrainDetails)
+        const details = msg.source == "HSL" ? await getHslDetails(addHSLPrefix(json.route), json.oday, detailData as any) : await getDigitrafficDetails(json.trainNumber, json.departureDate, detailData as any)
         if (!details) {
           return null
         } else {
@@ -288,11 +371,13 @@ export async function parseMessage(msg: MQTTMessage, digitrafficTrainDetails: Di
       }
       seenTrips.set(tripId, { trip, lastPos: { lat: 0, lng: 0 }, lastTime: new Temporal.ZonedDateTime(0n, "Europe/Helsinki") })
     }
-    const now = Temporal.Instant.from(json.timestamp).toZonedDateTimeISO("Europe/Helsinki")
+    const now = Temporal.Instant.from(msg.source == "HSL" ? json.tst : json.timestamp).toZonedDateTimeISO("Europe/Helsinki")
     const seen = seenTrips.get(tripId)
 
     // This should never happen
     if (!seen) return
+    // Overlap in data, exclude HSL commuter trains becaus ethey existin DIGITRAFFIC data already
+    if (msg.source == "HSL" && seen.trip.routeType == "TRAIN_COMMUTER") return
 
     const distance = haversineDistance(seen.lastPos, msgPos)
 
@@ -338,6 +423,34 @@ export async function getDigitrafficDetails(trainNumber: number, depDate: string
     route: `${train.trainType.name} ${trainNumber}`,
     departureDate: Temporal.PlainDate.from(depDate)
   }
+}
+
+export async function getHslDetails(routeId: string, depDate: string, hslDetails: HslRoute[]): Promise<Omit<Trip, "dataSource" | "tripId"> | null> {
+  const route: HslRoute = hslDetails.find(route => route.gtfsId == routeId) ||
+    (await GraphQl(hslRouteDetailsQuery, (process.env.HSL_GRAPHQL || "https://api.digitransit.fi/routing/v2/hsl/gtfs/v1") + "?digitransit-subscription-key=" + process.env.DIGITRANSIT_KEY, { id: routeId }, { "Content-Type": "application/json" }))?.data?.route
+  if (!route) return null
+  const firstStation = route.stops[0]!
+  const lastStation = route.stops[route.stops.length - 1]!
+
+  return {
+    startPointId: firstStation.code,
+    startPointName: firstStation.name,
+    endPointId: lastStation.code,
+    endPointName: lastStation.name,
+    operatorId: stripHSLPrefix(route.agency.gtfsId),
+    operatorName: route.agency.name,
+    routeType: hslRouteType(route.type || -1, route.mode),
+    route: route.shortName,
+    departureDate: Temporal.PlainDate.from(depDate)
+  }
+}
+
+function stripHSLPrefix(input: string) {
+  return input.replace("HSL:", "")
+}
+
+function addHSLPrefix(input: string) {
+  return `HSL:${input}`
 }
 
 function digitrafficDataToRouteType(trainType: { name: string, trainCategory: { name: string } }): RouteType {
@@ -405,6 +518,46 @@ function digitrafficDataToRouteType(trainType: { name: string, trainCategory: { 
   }
 }
 
+function hslRouteType(mode: number, stringMode?: string): RouteType {
+  switch (mode) {
+    case 109:
+      return "TRAIN_COMMUTER"
+    case 102:
+      return "TRAIN_LONG_DISTANCE"
+    case 701:
+    case 704:
+    case 700:
+    case 715:
+    case 702:
+    case 714:
+    case 3:
+      return "BUS"
+    case 900:
+      return "LIGHT_RAIL"
+    case 0:
+      return "TRAM"
+    case 1:
+      return "METRO"
+    case 4:
+    case 1008:
+      return "FERRY"
+    default:
+      switch (stringMode) {
+        case "BUS-EXPRESS": return "BUS"
+        case "COACH": return "BUS"
+        case "SPEEDTRAM": return "LIGHT_RAIL"
+        case "BUS": return "BUS"
+        case "TRANSIT": return "BUS"
+        case "RAIL": return "TRAIN_COMMUTER"
+        case "SUBWAY": return "METRO"
+        case "TRAM": return "TRAM"
+        case "TROLLEYBUS": return "TRAM"
+        case "FERRY": return "FERRY"
+      }
+      return "BUS"
+  }
+}
+
 function haversineDistance(coords1: LatLng, coords2: LatLng) {
   function toRad(x: number) {
     return x * Math.PI / 180;
@@ -434,14 +587,15 @@ function haversineDistance(coords1: LatLng, coords2: LatLng) {
 
 export async function GraphQl(query: string, url: string, variables: { [key: string]: any } = {}, headers = {}) {
   try {
-    return await (await fetch(url, {
+    const text = await (await fetch(url, {
       body: JSON.stringify({
         query,
         variables
       }),
       method: "POST",
       headers
-    })).json()
+    })).text()
+    return JSON.parse(text)
   } catch (error) {
     console.error(`Failed to parse GraphQl Message: ${error}`)
     return null

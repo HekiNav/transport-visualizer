@@ -5,7 +5,7 @@
 
 
 
-    "module": "es2022",
+    "module": "esnext",
     "target": "esnext",
     "lib": ["esnext", "dom"],
     "types": [

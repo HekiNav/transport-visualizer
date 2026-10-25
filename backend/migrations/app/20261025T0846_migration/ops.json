@@ -1,0 +1,196 @@
+[
+  {
+    "id": "dropCheckConstraint.Trip.Trip_dataSource_check_3ec7359e",
+    "label": "Drop check constraint \"Trip_dataSource_check_3ec7359e\" on \"Trip\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Trip_dataSource_check_3ec7359e",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_dataSource_check_3ec7359e\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_dataSource_check_3ec7359e",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Trip_dataSource_check_3ec7359e\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Trip_dataSource_check_3ec7359e\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" DROP CONSTRAINT \"Trip_dataSource_check_3ec7359e\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Trip_dataSource_check_3ec7359e\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_dataSource_check_3ec7359e",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_dataSource_check_3ec7359e\" on \"Trip\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "dropCheckConstraint.Trip.Trip_routeType_check_b6410f7b",
+    "label": "Drop check constraint \"Trip_routeType_check_b6410f7b\" on \"Trip\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Trip_routeType_check_b6410f7b",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_routeType_check_b6410f7b\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_b6410f7b",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "present",
+          "object": "constraint \"Trip_routeType_check_b6410f7b\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop check constraint \"Trip_routeType_check_b6410f7b\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" DROP CONSTRAINT \"Trip_routeType_check_b6410f7b\""
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify constraint \"Trip_routeType_check_b6410f7b\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_b6410f7b",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_routeType_check_b6410f7b\" on \"Trip\""
+        }
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Trip.Trip_dataSource_check_4b5961a8",
+    "label": "Add check constraint \"Trip_dataSource_check_4b5961a8\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Trip_dataSource_check_4b5961a8",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_dataSource_check_4b5961a8\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_dataSource_check_4b5961a8",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_dataSource_check_4b5961a8\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Trip_dataSource_check_4b5961a8\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ADD CONSTRAINT \"Trip_dataSource_check_4b5961a8\" CHECK (\"dataSource\" IN ('DIGITRAFFIC', 'HSL'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Trip_dataSource_check_4b5961a8\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Trip_dataSource_check_4b5961a8",
+          "public",
+          "\"public\".\"Trip\"",
+          "c"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "checkConstraint.Trip.Trip_routeType_check_9a0814b0",
+    "label": "Add check constraint \"Trip_routeType_check_9a0814b0\" on \"Trip\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "checkConstraint",
+        "name": "Trip_routeType_check_9a0814b0",
+        "table": "Trip"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure constraint \"Trip_routeType_check_9a0814b0\" does not exist",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3))) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_9a0814b0",
+          "public",
+          "\"public\".\"Trip\""
+        ],
+        "expectation": {
+          "expects": "absent",
+          "object": "constraint \"Trip_routeType_check_9a0814b0\" on \"Trip\""
+        }
+      }
+    ],
+    "execute": [
+      {
+        "description": "add check constraint \"Trip_routeType_check_9a0814b0\"",
+        "sql": "ALTER TABLE \"public\".\"Trip\" ADD CONSTRAINT \"Trip_routeType_check_9a0814b0\" CHECK (\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAIN_FREIGHT', 'TRAIN_SHUNT', 'TRAIN_OTHER', 'TRAIN_REGIONAL', 'TRAIN_TRANSFER', 'TRAIN_SLEEPER', 'TRAM', 'FERRY', 'LIGHT_RAIL', 'METRO'))"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify check constraint \"Trip_routeType_check_9a0814b0\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"pg_constraint\" AS \"c\" INNER JOIN \"pg_namespace\" AS \"n\" ON \"n\".\"oid\" = \"c\".\"connamespace\" WHERE (\"c\".\"conname\" = $1 AND \"n\".\"nspname\" = $2 AND \"c\".\"conrelid\" = to_regclass($3) AND \"c\".\"contype\" = $4)) AS \"result\"",
+        "params": [
+          "Trip_routeType_check_9a0814b0",
+          "public",
+          "\"public\".\"Trip\"",
+          "c"
+        ]
+      }
+    ]
+  }
+]

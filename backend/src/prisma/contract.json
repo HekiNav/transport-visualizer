@@ -23,6 +23,10 @@
               {
                 "name": "DIGITRAFFIC",
                 "value": "DIGITRAFFIC"
+              },
+              {
+                "name": "HSL",
+                "value": "HSL"
               }
             ]
           },
@@ -76,6 +80,10 @@
               {
                 "name": "LIGHT_RAIL",
                 "value": "LIGHT_RAIL"
+              },
+              {
+                "name": "METRO",
+                "value": "METRO"
               }
             ]
           }
@@ -390,13 +398,13 @@
             "Trip": {
               "checks": [
                 {
-                  "expression": "\"dataSource\" IN ('DIGITRAFFIC')",
-                  "name": "Trip_dataSource_check_3ec7359e",
+                  "expression": "\"dataSource\" IN ('DIGITRAFFIC', 'HSL')",
+                  "name": "Trip_dataSource_check_4b5961a8",
                   "prefix": "Trip_dataSource_check"
                 },
                 {
-                  "expression": "\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAIN_FREIGHT', 'TRAIN_SHUNT', 'TRAIN_OTHER', 'TRAIN_REGIONAL', 'TRAIN_TRANSFER', 'TRAIN_SLEEPER', 'TRAM', 'FERRY', 'LIGHT_RAIL')",
-                  "name": "Trip_routeType_check_b6410f7b",
+                  "expression": "\"routeType\" IN ('BUS', 'TRAIN_LONG_DISTANCE', 'TRAIN_COMMUTER', 'TRAIN_FREIGHT', 'TRAIN_SHUNT', 'TRAIN_OTHER', 'TRAIN_REGIONAL', 'TRAIN_TRANSFER', 'TRAIN_SLEEPER', 'TRAM', 'FERRY', 'LIGHT_RAIL', 'METRO')",
+                  "name": "Trip_routeType_check_9a0814b0",
                   "prefix": "Trip_routeType_check"
                 }
               ],
@@ -483,7 +491,8 @@
             "DataSource": {
               "kind": "valueSet",
               "values": [
-                "DIGITRAFFIC"
+                "DIGITRAFFIC",
+                "HSL"
               ]
             },
             "RouteType": {
@@ -500,7 +509,8 @@
                 "TRAIN_SLEEPER",
                 "TRAM",
                 "FERRY",
-                "LIGHT_RAIL"
+                "LIGHT_RAIL",
+                "METRO"
               ]
             }
           }
@@ -509,7 +519,7 @@
         "kind": "postgres-schema"
       }
     },
-    "storageHash": "5e3c98f1b43b89bb1b4003e0ff554d17ffa79a66a028f642357bb85769c2e269"
+    "storageHash": "70782d8c0265277aff5e8e5ff8bcb0803ecad032af2b4f3c98af1d27f862113e"
   },
   "capabilities": {
     "postgres": {

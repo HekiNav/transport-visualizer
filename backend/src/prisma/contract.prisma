@@ -12,10 +12,12 @@ enum RouteType {
   TRAM
   FERRY
   LIGHT_RAIL
+  METRO
 }
 
 enum DataSource {
   DIGITRAFFIC
+  HSL
 }
 
 model Message {
